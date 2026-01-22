@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Knowledge Bot",
+  "description": "Một Chatbot AI nhúng vào website, cho phép Admin nạp dữ liệu (Knowledge Base) và Người dùng tương tác để được tư vấn.",
+  "requestFramePermissions": []
+}
