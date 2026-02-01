@@ -1,28 +1,34 @@
 services:
-  # Backend Service
+  # Backend API Service
   - type: web
     name: geminibot-backend
     env: node
+    region: oregon
+    plan: free
     buildCommand: npm install
     startCommand: node server.js
+    healthCheckPath: /api/health
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: GEMINI_API_KEY
         sync: false
       - key: JWT_SECRET
         generateValue: true
-      - key: NODE_ENV
-        value: production
-    disk:
-      name: geminibot-data
-      mountPath: /opt/render/project/src
-      sizeGB: 1
 
-  # Frontend Service
+  # Frontend Static Site  
   - type: web
     name: geminibot-frontend
     env: static
+    region: oregon
+    plan: free
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
     routes:
       - type: rewrite
         source: /*
