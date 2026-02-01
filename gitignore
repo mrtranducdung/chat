@@ -1,0 +1,7 @@
+node_modules/
+.env
+.env.local
+geminibot.db
+dist/
+*.db
+.DS_Store
