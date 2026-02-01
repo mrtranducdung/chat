@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { UploadIcon, TrashIcon, SettingsIcon, CodeIcon, MagicIcon, BarChartIcon, ThumbsUpIcon, ThumbsDownIcon, SearchIcon, PlusIcon, FileIcon, CheckCircleIcon, XIcon } from './Icons';
 import { KnowledgeItem, AppConfig, FeedbackLog, FeedbackAnalysisResult, DEFAULT_CONFIG } from '../types';
@@ -6,10 +5,6 @@ import { getKnowledgeBase, saveKnowledgeItem, deleteKnowledgeItem, getConfig, sa
 import { analyzeDocument } from '../services/geminiService';
 
 const AdminPanel: React.FC = () => {
-  // Login State
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
-
   const [activeTab, setActiveTab] = useState<'knowledge' | 'settings' | 'install' | 'feedback'>('knowledge');
   const [knowledgeList, setKnowledgeList] = useState<KnowledgeItem[]>([]);
   const [feedbackLogs, setFeedbackLogs] = useState<FeedbackLog[]>([]);
@@ -35,7 +30,6 @@ const AdminPanel: React.FC = () => {
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   useEffect(() => {
-    if (!isLoggedIn) return;
     const fetchData = async () => {
         setIsLoadingData(true);
         try {
@@ -56,7 +50,7 @@ const AdminPanel: React.FC = () => {
         }
     };
     fetchData();
-  }, [activeTab, isLoggedIn]); 
+  }, [activeTab]); 
 
   // Filter Knowledge Base
   const filteredKnowledge = useMemo(() => {
@@ -65,19 +59,6 @@ const AdminPanel: React.FC = () => {
       item.content.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [knowledgeList, searchTerm]);
-
-  // LOGIN HANDLER
-  const handleLogin = (e: React.FormEvent) => {
-      e.preventDefault();
-      // Simple client-side check. In prod, this should be a server session.
-      // Default password is "admin" from DEFAULT_CONFIG if not set
-      const correctPass = config.adminPassword || "admin";
-      if (passwordInput === correctPass) {
-          setIsLoggedIn(true);
-      } else {
-          alert("Sai mật khẩu!");
-      }
-  };
 
   const handleRunFeedbackAnalysis = async () => {
       setIsAnalyzingFeedback(true);
@@ -167,6 +148,7 @@ const AdminPanel: React.FC = () => {
     setIsProcessing(true);
     const newItem: KnowledgeItem = {
       id: "", 
+      tenantId: "",
       title: uploadTitle,
       content: uploadText,
       dateAdded: 0,
@@ -206,13 +188,13 @@ const AdminPanel: React.FC = () => {
   const handleRemoveQuestion = (idx: number) => {
     setLocalConfig(prev => ({
         ...prev,
-        suggestedQuestions: prev.suggestedQuestions.filter((_, i) => i !== idx)
+        suggestedQuestions: prev.suggestedQuestions?.filter((_, i) => i !== idx)
     }));
   };
 
   const handleSaveConfig = () => {
     saveConfig(localConfig);
-    setConfig(localConfig); // Update live state
+    setConfig(localConfig);
     alert("Cài đặt đã được lưu!");
     window.location.reload(); 
   };
@@ -231,35 +213,10 @@ const AdminPanel: React.FC = () => {
     </button>
   );
 
-  // --- RENDER LOGIN IF NOT LOGGED IN ---
-  if (!isLoggedIn) {
-      return (
-        <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden min-h-[400px] flex flex-col justify-center items-center p-8 mt-10">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-6">
-                <SettingsIcon className="w-8 h-8"/>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Admin Login</h2>
-            <p className="text-gray-500 mb-6 text-center text-sm">Vui lòng nhập mật khẩu quản trị để tiếp tục.</p>
-            <form onSubmit={handleLogin} className="w-full space-y-4">
-                <input 
-                    type="password" 
-                    value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
-                    placeholder="Mật khẩu (mặc định: admin)"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-                <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
-                    Truy cập Dashboard
-                </button>
-            </form>
-        </div>
-      );
-  }
-
   return (
     <div className="w-full max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[800px]">
       
-      {/* 1. Sidebar */}
+      {/* Sidebar */}
       <div className="w-full md:w-72 bg-white border-r border-gray-100 flex flex-col p-6 z-10">
         <div className="mb-8 px-2">
             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -287,11 +244,10 @@ const AdminPanel: React.FC = () => {
                     <p className="text-[10px] text-green-600 font-medium">All systems operational</p>
                 </div>
             </div>
-            <button onClick={() => setIsLoggedIn(false)} className="text-xs text-red-500 hover:underline mt-2 w-full text-left">Đăng xuất</button>
         </div>
       </div>
 
-      {/* 2. Main Content */}
+      {/* Main Content */}
       <div className="flex-1 bg-gray-50/50 p-8 overflow-y-auto">
         {isLoadingData ? (
             <div className="flex h-full items-center justify-center flex-col gap-4">
@@ -299,9 +255,9 @@ const AdminPanel: React.FC = () => {
                 <span className="text-gray-400 font-medium animate-pulse">Đang đồng bộ dữ liệu...</span>
             </div>
         ) : (
-            <div className="max-w-4xl mx-auto animate-fade-in-up">
+            <div className="max-w-4xl mx-auto animate-fade-in">
                 
-                {/* --- KNOWLEDGE TAB --- */}
+                {/* KNOWLEDGE TAB */}
                 {activeTab === 'knowledge' && (
                 <>
                     <div className="flex justify-between items-center mb-8">
@@ -442,7 +398,7 @@ const AdminPanel: React.FC = () => {
                 </>
                 )}
 
-                {/* --- FEEDBACK TAB --- */}
+                {/* FEEDBACK TAB */}
                 {activeTab === 'feedback' && (
                 <>
                     <div className="flex justify-between items-end mb-8">
@@ -464,7 +420,7 @@ const AdminPanel: React.FC = () => {
                     </div>
 
                     {analysisResult && (
-                        <div className="mb-8 bg-white rounded-2xl p-8 shadow-xl border border-indigo-100 relative overflow-hidden animate-fade-in-up">
+                        <div className="mb-8 bg-white rounded-2xl p-8 shadow-xl border border-indigo-100 relative overflow-hidden animate-fade-in">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
                             
                             <div className="relative z-10">
@@ -551,13 +507,12 @@ const AdminPanel: React.FC = () => {
                 </>
                 )}
 
-                {/* --- SETTINGS TAB --- */}
+                {/* SETTINGS TAB */}
                 {activeTab === 'settings' && (
                     <div className="max-w-3xl mx-auto py-6">
                         <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
                             <h2 className="text-2xl font-bold text-gray-900 mb-6">Cấu hình Widget</h2>
 
-                            {/* Basic Info */}
                             <div className="space-y-4 mb-8">
                                 <h3 className="font-semibold text-gray-800 border-b pb-2">Thông tin cơ bản</h3>
                                 <div>
@@ -578,19 +533,8 @@ const AdminPanel: React.FC = () => {
                                         className="w-full border rounded-lg px-3 py-2"
                                     />
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-600 block mb-1">Mật khẩu Admin</label>
-                                    <input 
-                                        type="text" 
-                                        value={localConfig.adminPassword || ''}
-                                        onChange={(e) => setLocalConfig({...localConfig, adminPassword: e.target.value})}
-                                        placeholder="Để trống để dùng mặc định: admin"
-                                        className="w-full border rounded-lg px-3 py-2"
-                                    />
-                                </div>
                             </div>
 
-                            {/* Suggested Questions */}
                             <div className="space-y-4 mb-8">
                                 <h3 className="font-semibold text-gray-800 border-b pb-2">Gợi ý câu hỏi (Suggested Chips)</h3>
                                 <div className="flex gap-2">
@@ -600,7 +544,7 @@ const AdminPanel: React.FC = () => {
                                         onChange={(e) => setNewQuestion(e.target.value)}
                                         placeholder="Nhập câu hỏi gợi ý..."
                                         className="flex-1 border rounded-lg px-3 py-2"
-                                        onKeyDown={(e) => e.key === 'Enter' && handleAddQuestion()}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleAddQuestion()}
                                     />
                                     <button onClick={handleAddQuestion} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"><PlusIcon className="w-5 h-5"/></button>
                                 </div>
@@ -625,7 +569,7 @@ const AdminPanel: React.FC = () => {
                     </div>
                 )}
 
-                {/* --- INSTALL TAB --- */}
+                {/* INSTALL TAB */}
                 {activeTab === 'install' && (
                     <div className="max-w-3xl mx-auto">
                         <h1 className="text-2xl font-bold text-gray-900 mb-6">Hướng dẫn Cài đặt</h1>
@@ -644,7 +588,7 @@ const AdminPanel: React.FC = () => {
                                         <p>Status: <span className="text-green-400">Online</span></p>
                                     </div>
                                 </div>
-                                <p className="text-xs opacity-50">Lưu ý: Mật khẩu Admin chỉ lưu trên trình duyệt này để demo. Trong thực tế, cần bảo mật phía Server.</p>
+                                <p className="text-xs opacity-50">Lưu ý: Đây là phiên bản multi-tenant. Mỗi tenant có dữ liệu riêng biệt.</p>
                             </div>
                         </div>
                     </div>
