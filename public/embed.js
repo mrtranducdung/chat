@@ -20,7 +20,7 @@
     tenantId: scriptTag.getAttribute('data-tenant-id') || 'default',
     botName: scriptTag.getAttribute('data-bot-name') || 'GeminiBot',
     primaryColor: scriptTag.getAttribute('data-primary-color') || '#2563eb',
-    position: scriptTag.getAttribute('data-position') || 'bottom-right', // bottom-right, bottom-left
+    position: scriptTag.getAttribute('data-position') || 'bottom-right',
     language: scriptTag.getAttribute('data-language') || 'vi'
   };
 
@@ -94,12 +94,13 @@
       embedded: 'true'
     });
     
-    // Determine the correct widget URL (dev vs production)
-    const widgetBaseUrl = config.apiUrl.includes('localhost') 
-      ? 'http://localhost:3000'  // Vite dev server
-      : config.apiUrl.replace('/api', ''); // Production URL
+    // Get the frontend URL from where this script was loaded
+    const scriptSrc = scriptTag.src;
+    const widgetBaseUrl = scriptSrc.substring(0, scriptSrc.lastIndexOf('/'));
     
     iframe.src = `${widgetBaseUrl}/widget?${params.toString()}`;
+
+    console.log('📍 Widget URL:', iframe.src);
 
     // Toggle chat visibility
     let isOpen = false;
