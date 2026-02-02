@@ -107,7 +107,7 @@ db.exec(`
 console.log('✅ Database initialized');
 
 // ============================================
-// MIDDLEWARE - EXPLICIT CORS
+// MIDDLEWARE - EXPLICIT CORS WITH PROPER PREFLIGHT
 // ============================================
 
 app.use((req, res, next) => {
@@ -123,17 +123,22 @@ app.use((req, res, next) => {
   ];
 
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  
+  console.log('🔍 CORS Check - Origin:', origin, 'Method:', req.method);
+
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
 
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
 
-  // Handle preflight
+  // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    console.log('✅ Handling OPTIONS preflight');
+    return res.status(204).send('');
   }
 
   next();
