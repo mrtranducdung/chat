@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Mistral } from '@mistralai/mistralai';
 
 dotenv.config();
 
@@ -11,13 +11,12 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
 
-// Initialize Gemini AI
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-console.log('🤖 Gemini AI initialized:', !!GEMINI_API_KEY ? 'YES ✅' : 'NO ❌');
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY || '';
+const mistral = new Mistral({ apiKey: MISTRAL_API_KEY });
+console.log('🤖 Mistral AI initialized:', !!MISTRAL_API_KEY ? 'YES ✅' : 'NO ❌');
 
-if (!GEMINI_API_KEY) {
-  console.error('❌ WARNING: GEMINI_API_KEY not set in .env file! Chat will not work.');
+if (!MISTRAL_API_KEY) {
+  console.error('❌ WARNING: MISTRAL_API_KEY not set in .env file! Chat will not work.');
 }
 
 // Initialize SQLite database
@@ -449,7 +448,7 @@ app.get('/api/tenant', requireAuth, (req, res) => {
 app.post('/api/chat', optionalAuth, async (req, res) => {
   try {
     const { message, history, botName, language, tenantId: bodyTenantId } = req.body;
-    if (!GEMINI_API_KEY) return res.status(503).json({ error: 'AI service not configured' });
+    if (!MISTRAL_API_KEY) return res.status(503).json({ error: 'AI service not configured' });
 
     const tenantId = req.user?.tenantId || bodyTenantId || 'default';
     const knowledge = db.prepare("SELECT * FROM knowledge_items WHERE tenant_id = ? AND status = 'active' LIMIT 10").all(tenantId);
@@ -464,18 +463,29 @@ app.post('/api/chat', optionalAuth, async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('Transfer-Encoding', 'chunked');
 
-    const contents = [
-      ...history.filter(m => m.id !== 'welcome').map(msg => ({ role: msg.sender === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] })),
-      { role: 'user', parts: [{ text: message }] }
+    // Build messages array for Mistral
+    const messages = [
+      { role: 'system', content: systemInstruction },
+      ...history.filter(m => m.id !== 'welcome').map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.text
+      })),
+      { role: 'user', content: message }
     ];
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest', systemInstruction });
-    const result = await model.generateContentStream({ contents });
+    // Stream response from Mistral
+    const chatStream = await mistral.chat.stream({
+      model: 'mistral-large-latest',
+      messages: messages,
+    });
 
-    for await (const chunk of result.stream) {
-      const text = chunk.text();
-      if (text) res.write(text);
+    for await (const chunk of chatStream) {
+      const content = chunk.data.choices[0]?.delta?.content;
+      if (content) {
+        res.write(content);
+      }
     }
+    
     res.end();
   } catch (error) {
     console.error('Chat error:', error);
@@ -492,7 +502,7 @@ app.post('/api/chat', optionalAuth, async (req, res) => {
 // ============================================
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', geminiConfigured: !!GEMINI_API_KEY, timestamp: Date.now() });
+  res.json({ status: 'ok', mistralConfigured: !!MISTRAL_API_KEY, timestamp: Date.now() });
 });
 
 // ============================================
@@ -503,5 +513,5 @@ app.listen(PORT, () => {
   console.log(`🚀 GeminiBot Multi-Tenant API running on http://localhost:${PORT}`);
   console.log(`📊 Database: geminibot.db`);
   console.log(`🔐 JWT Secret: ${JWT_SECRET === 'change-me-in-production' ? '⚠️  CHANGE IN PRODUCTION!' : '✓ Custom'}`);
-  console.log(`🤖 Gemini API: ${GEMINI_API_KEY ? '✅ Configured' : '❌ NOT CONFIGURED'}`);
+  console.log(`🤖 Mistral API: ${MISTRAL_API_KEY ? '✅ Configured' : '❌ NOT CONFIGURED'}`);
 });
