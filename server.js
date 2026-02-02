@@ -710,6 +710,59 @@ If the question relates to the documents above, use that information. Otherwise,
   }
 });
 
+app.post('/api/setup-test-account', async (req, res) => {
+  try {
+    const testEmail = 'admin@test.com';
+    const testPassword = 'admin123';
+    
+    // Check if exists
+    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(testEmail);
+    if (existing) {
+      return res.json({ 
+        message: 'Test account already exists',
+        email: testEmail,
+        password: testPassword 
+      });
+    }
+
+    const tenantId = generateId();
+    const userId = generateId();
+    const passwordHash = await hashPassword(testPassword);
+    const now = Date.now();
+
+    // Create tenant
+    db.prepare(`
+      INSERT INTO tenants (id, name, slug, plan, status, created_at)
+      VALUES (?, ?, ?, 'free', 'active', ?)
+    `).run(tenantId, 'Test Company', 'test-company', now);
+
+    // Create user
+    db.prepare(`
+      INSERT INTO users (id, tenant_id, email, password_hash, full_name, role, created_at)
+      VALUES (?, ?, ?, ?, ?, 'owner', ?)
+    `).run(userId, tenantId, testEmail, passwordHash, 'Admin User', now);
+
+    // Create config
+    db.prepare(`
+      INSERT INTO chatbot_configs (id, tenant_id, bot_name, welcome_message, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(generateId(), tenantId, 'GeminiBot', 'Xin chào! Tôi có thể giúp gì cho bạn?', now, now);
+
+    res.json({ 
+      success: true,
+      message: 'Test account created successfully!',
+      credentials: {
+        email: testEmail,
+        password: testPassword
+      },
+      tenantId: tenantId
+    });
+  } catch (error) {
+    console.error('Setup error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ============================================
 // HEALTH CHECK
 // ============================================
