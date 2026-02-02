@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import toast, { Toaster } from 'react-hot-toast';
+import copy from 'copy-to-clipboard';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, prism } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { MessageCircleIcon, XIcon, SendIcon, UserIcon, ThumbsUpIcon, ThumbsDownIcon } from './Icons';
@@ -148,16 +149,18 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
+    const success = copy(text);
+    
+    if (success) {
       toast.success(language === 'vi' ? 'Đã sao chép!' : 'Copied to clipboard!', {
         duration: 2000,
         position: 'top-center',
       });
-    }).catch(() => {
+    } else {
       toast.error(language === 'vi' ? 'Không thể sao chép' : 'Failed to copy', {
         duration: 2000
       });
-    });
+    }
   };
 
   const startNewConversation = () => {
