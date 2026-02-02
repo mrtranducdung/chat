@@ -16,21 +16,12 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-  # Frontend Static Site  
+  # Frontend Web Service (changed from static)
   - type: web
     name: geminibot-frontend
-    env: static
+    env: node
     buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
-    pullRequestPreviewsEnabled: true
-    headers:
-      - path: /*
-        name: Content-Security-Policy
-        value: "frame-ancestors *"
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    startCommand: npx serve -s dist -l 10000 --no-clipboard --no-port-switching
     envVars:
       - key: VITE_API_URL
         value: https://geminibot-backend.onrender.com/api

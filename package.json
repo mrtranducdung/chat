@@ -7,9 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "server": "node server.js",
-    "start": "node server.js",
-    "dev:all": "concurrently \"npm run dev\" \"npm run server\""
+    "serve": "serve -s dist"
   },
   "dependencies": {
     "@google/genai": "^1.38.0",
@@ -24,7 +22,8 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-markdown": "^9.0.1",
-    "react-router-dom": "^6.30.3"
+    "react-router-dom": "^6.30.3",
+    "serve": "^14.2.5"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
