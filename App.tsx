@@ -3,6 +3,8 @@ import ChatWidget from './components/ChatWidget';
 import AdminPanel from './components/AdminPanel';
 import { getConfig, isAuthenticated, logout } from './services/storageService';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://geminibot-backend.onrender.com/api';
+
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [isAdminMode, setIsAdminMode] = useState(true);
@@ -91,7 +93,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -125,7 +127,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
         throw new Error('All fields are required');
       }
 
-      const response = await fetch('http://localhost:3001/api/auth/register', {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
