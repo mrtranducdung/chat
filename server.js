@@ -125,7 +125,9 @@ app.use(cors({
     'http://127.0.0.1:3000',
     'http://127.0.0.1:5173',
     'http://192.168.1.110:3000',  // Add your local IP
-    'http://192.168.1.110:5173'
+    'http://192.168.1.110:5173',    
+    'https://geminibot-frontend.onrender.com',  // ← Make sure this line exists!
+    'https://mrtranducdung.github.io'
   ],
   credentials: true
 }));
