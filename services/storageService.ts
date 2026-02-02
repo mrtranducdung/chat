@@ -11,7 +11,10 @@ import {
   AuthToken
 } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 
+  (window.location.hostname.includes('onrender.com') 
+    ? 'https://geminibot-backend.onrender.com/api' 
+    : 'http://localhost:3001/api');
 
 // ============================================
 // TENANT CONTEXT (NEW)
