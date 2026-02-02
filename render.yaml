@@ -25,8 +25,8 @@ services:
     pullRequestPreviewsEnabled: true
     headers:
       - path: /*
-        name: X-Frame-Options
-        value: ALLOWALL
+        name: Content-Security-Policy
+        value: "frame-ancestors *"
     routes:
       - type: rewrite
         source: /*
