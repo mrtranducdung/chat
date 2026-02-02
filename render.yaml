@@ -23,7 +23,10 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     pullRequestPreviewsEnabled: true
-    # REMOVE THE HEADERS SECTION - it's blocking iframe embedding
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: ALLOWALL
     routes:
       - type: rewrite
         source: /*
