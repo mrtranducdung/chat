@@ -84,23 +84,20 @@
     iframe.setAttribute('title', 'GeminiBot Chat');
 
     const applyIframeStyle = () => {
-      // Always about 1/4 of screen width, but keep a usable min/max.
-      // Adjust these numbers if you want tighter/looser:
-      // - min width 300px
-      // - max width 420px
-      // - width target 25vw
-      const w = 'clamp(300px, 25vw, 420px)';
-
-      // Height: responsive but not too small. Target 60vh, min 380, max 620.
-      const h = 'clamp(380px, 60vh, 620px)';
-
       iframe.style.cssText = `
-        display: none;
+        display: ${isOpen ? 'block' : 'none'};
         position: fixed;
         ${isLeft ? 'left: 16px;' : 'right: 16px;'}
-        bottom: 88px; /* sits above the button */
-        width: ${w};
-        height: ${h};
+        bottom: 88px;
+
+        /* ALWAYS proportional */
+        width: 25vw;
+        height: 60vh;
+
+        /* optional safety so it never exceeds screen */
+        max-width: calc(100vw - 32px);
+        max-height: calc(100vh - 120px);
+
         border: none;
         border-radius: 16px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.12);
