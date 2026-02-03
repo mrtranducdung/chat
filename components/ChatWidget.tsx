@@ -35,6 +35,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
   const [error, setError] = useState<string | null>(null);
   const [retryMessage, setRetryMessage] = useState<string | null>(null);
   
+  // Dragging state
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const chatWidgetRef = useRef<HTMLDivElement>(null);
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -114,6 +120,53 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
       window.removeEventListener('offline', handleOffline);
     };
   }, [language]);
+
+  // Drag handlers
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDragging(true);
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    setDragStart({ x: clientX - position.x, y: clientY - position.y });
+  };
+
+  const handleDragMove = (e: MouseEvent | TouchEvent) => {
+    if (!isDragging) return;
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    const newX = clientX - dragStart.x;
+    const newY = clientY - dragStart.y;
+    
+    // Constrain to viewport
+    const maxX = window.innerWidth - (chatWidgetRef.current?.offsetWidth || 0);
+    const maxY = window.innerHeight - (chatWidgetRef.current?.offsetHeight || 0);
+    
+    setPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+      window.addEventListener('touchmove', handleDragMove);
+      window.addEventListener('touchend', handleDragEnd);
+      
+      return () => {
+        window.removeEventListener('mousemove', handleDragMove);
+        window.removeEventListener('mouseup', handleDragEnd);
+        window.removeEventListener('touchmove', handleDragMove);
+        window.removeEventListener('touchend', handleDragEnd);
+      };
+    }
+  }, [isDragging, dragStart, position]);
 
   const incrementUnread = () => {
     if (!isOpen && !isEmbedded) {
@@ -402,11 +455,13 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
     </div>
   );
 
-  // Header component
+  // Header component - Draggable
   const renderHeader = () => (
     <div 
-      className="p-3 sm:p-4 text-white flex justify-between items-center shadow-md relative z-10"
+      className="p-3 sm:p-4 text-white flex justify-between items-center shadow-md relative z-10 cursor-move touch-none select-none"
       style={{ backgroundColor: config.primaryColor }}
+      onMouseDown={handleDragStart}
+      onTouchStart={handleDragStart}
     >
       <div className="flex items-center gap-2">
         <div className="relative">
@@ -420,7 +475,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
         </div>
       </div>
       
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-2 sm:gap-3" onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
         {/* New Chat Button */}
         <button 
           onClick={startNewConversation}
@@ -460,21 +515,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
             </>
           )}
         </div>
-
-        {/* Close Button (only for non-embedded) */}
-        {!isEmbedded && (
-          <button 
-            onClick={handleClose}
-            className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition-all"
-          >
-            <XIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-        )}
       </div>
 
       {/* Offline indicator */}
       {!isOnline && (
-        <div className="absolute top-full left-0 right-0 bg-red-500 text-white text-[10px] sm:text-xs py-1 px-4 text-center">
+        <div className="absolute top-full left-0 right-0 bg-red-500 text-white text-[10px] sm:text-xs py-1 px-4 text-center pointer-events-none">
           {language === 'vi' ? '⚠️ Không có kết nối' : '⚠️ No connection'}
         </div>
       )}
@@ -539,88 +584,42 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
     </>
   );
 
-  // If embedded, render full-screen chat without launcher button
+  // If embedded, render draggable chat in corner
   if (isEmbedded) {
     return (
       <>
         <Toaster />
-        <div 
-          className={`w-full h-full flex flex-col overflow-hidden relative
-          ${isDark ? 'bg-gray-900' : 'bg-white'}
-          `}
-        >
-          {renderHeader()}
-
-          {/* Floating Close Button - Always visible on mobile in embedded mode */}
-          <button
-            onClick={handleClose}
-            className="sm:hidden absolute top-3 right-3 z-50 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center backdrop-blur-sm"
-            style={{ color: config.primaryColor }}
-          >
-            <XIcon className="w-6 h-6" />
-          </button>
-
-          {/* Messages Area */}
-          <div 
-            className={`flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-hide ${isDark ? 'bg-gray-909' : 'bg-gray-50'}`}
-            ref={scrollContainerRef}
-          >
-            {messages.map((msg, index) => renderMessage(msg, index))}
-            
-            {/* Suggested Questions */}
-            {!isTyping && (messages.length === 1) && config.suggestedQuestions && config.suggestedQuestions.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4 ml-8 sm:ml-10 animate-fade-in">
-                {config.suggestedQuestions.map((q, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSendMessage(q)}
-                    className={`text-xs px-3 py-1.5 rounded-full border transition-all hover:-translate-y-0.5
-                    ${isDark 
-                      ? 'bg-gray-800 border-gray-700 text-blue-300 hover:bg-gray-700' 
-                      : 'bg-white border-blue-100 text-blue-600 hover:bg-blue-50 hover:shadow-sm'
-                    }`}
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-
-          {renderInputArea()}
-        </div>
-      </>
-    );
-  }
-
-  // Normal mode with floating button - Mobile responsive
-  return (
-    <>
-      <Toaster />
-      <div className="fixed bottom-0 right-0 left-0 sm:bottom-6 sm:right-6 sm:left-auto z-50 flex flex-col items-end pointer-events-none">
-        {isOpen && (
-          <div 
-            className={`pointer-events-auto 
-              w-full h-screen sm:w-[380px] sm:h-[550px] sm:max-h-[80vh] 
-              sm:rounded-2xl shadow-2xl flex flex-col sm:mb-4 overflow-hidden 
-              border-0 sm:border 
-              animate-fade-in-up transition-all transform origin-bottom-right
-              relative
-              ${isDark ? 'bg-gray-900 sm:border-gray-700' : 'bg-white sm:border-gray-200'}
-            `}
-          >
-            {renderHeader()}
-
-            {/* Floating Close Button for Mobile - Always visible */}
+        <div className="fixed inset-0 pointer-events-none z-[999998]">
+          {/* Close button outside chat - top right of chat window */}
+          {isOpen && (
             <button
               onClick={handleClose}
-              className="sm:hidden absolute top-3 right-3 z-50 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center backdrop-blur-sm"
-              style={{ color: config.primaryColor }}
+              className="absolute w-10 h-10 rounded-full bg-red-500 shadow-lg flex items-center justify-center z-[1000000] pointer-events-auto"
+              style={{
+                right: `calc(${window.innerWidth - position.x - (chatWidgetRef.current?.offsetWidth || 0)}px - 12px)`,
+                top: `${position.y - 12}px`
+              }}
             >
-              <XIcon className="w-6 h-6" />
+              <XIcon className="w-6 h-6 text-white" />
             </button>
+          )}
+          
+          <div 
+            ref={chatWidgetRef}
+            className={`pointer-events-auto absolute flex flex-col overflow-hidden
+              rounded-2xl shadow-2xl border
+              ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}
+            `}
+            style={{
+              width: 'min(400px, 50vw)',
+              height: 'min(600px, 60vh)',
+              right: position.x === 0 ? '20px' : 'auto',
+              bottom: position.y === 0 ? '20px' : 'auto',
+              left: position.x !== 0 ? `${position.x}px` : 'auto',
+              top: position.y !== 0 ? `${position.y}px` : 'auto',
+            }}
+          >
+            {renderHeader()}
 
             {/* Messages Area */}
             <div 
@@ -653,10 +652,83 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
 
             {renderInputArea()}
           </div>
+        </div>
+      </>
+    );
+  }
+
+  // Normal mode with floating button - Mobile responsive with draggable chat
+  return (
+    <>
+      <Toaster />
+      <div className="fixed inset-0 pointer-events-none z-50">
+        {isOpen && (
+          <>
+            {/* Close button outside chat - top right of chat window */}
+            <button
+              onClick={handleClose}
+              className="absolute w-10 h-10 rounded-full bg-red-500 shadow-lg flex items-center justify-center z-[60] pointer-events-auto"
+              style={{
+                right: `calc(100vw - ${position.x}px - ${chatWidgetRef.current?.offsetWidth || 0}px - 12px)`,
+                top: `${position.y - 12}px`,
+              }}
+            >
+              <XIcon className="w-6 h-6 text-white" />
+            </button>
+
+            <div 
+              ref={chatWidgetRef}
+              className={`pointer-events-auto absolute
+                w-[min(400px,50vw)] h-[min(600px,60vh)]
+                rounded-2xl shadow-2xl flex flex-col overflow-hidden border
+                animate-fade-in-up transition-shadow
+                ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}
+              `}
+              style={{
+                right: position.x === 0 ? '20px' : 'auto',
+                bottom: position.y === 0 ? '90px' : 'auto',
+                left: position.x !== 0 ? `${position.x}px` : 'auto',
+                top: position.y !== 0 ? `${position.y}px` : 'auto',
+              }}
+            >
+              {renderHeader()}
+
+              {/* Messages Area */}
+              <div 
+                className={`flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-hide ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+                ref={scrollContainerRef}
+              >
+                {messages.map((msg, index) => renderMessage(msg, index))}
+                
+                {/* Suggested Questions */}
+                {!isTyping && (messages.length === 1) && config.suggestedQuestions && config.suggestedQuestions.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-4 ml-8 sm:ml-10 animate-fade-in">
+                    {config.suggestedQuestions.map((q, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSendMessage(q)}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-all hover:-translate-y-0.5
+                        ${isDark 
+                          ? 'bg-gray-800 border-gray-700 text-blue-300 hover:bg-gray-700' 
+                          : 'bg-white border-blue-100 text-blue-600 hover:bg-blue-50 hover:shadow-sm'
+                        }`}
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                <div ref={messagesEndRef} />
+              </div>
+
+              {renderInputArea()}
+            </div>
+          </>
         )}
 
-        {/* Launcher - Mobile optimized */}
-        <div className="relative pointer-events-auto group mb-4 mr-4 sm:mb-0 sm:mr-0">
+        {/* Launcher - Bottom right */}
+        <div className="absolute bottom-4 right-4 pointer-events-auto">
           {unreadCount > 0 && !isOpen && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-md z-10 animate-bounce">
               {unreadCount > 9 ? '9+' : unreadCount}
