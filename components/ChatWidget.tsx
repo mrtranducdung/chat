@@ -453,10 +453,16 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
           )}
         </div>
 
-        {/* Close Button (only for non-embedded) */}
+        {/* Close Button (only for non-embedded) - Notify parent on mobile */}
         {!isEmbedded && (
           <button 
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              setIsOpen(false);
+              // Notify parent iframe to close (for mobile)
+              if (window.parent !== window) {
+                window.parent.postMessage('GEMINIBOT_CLOSE', '*');
+              }
+            }}
             className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition-all"
           >
             <XIcon className="w-4 h-4 sm:w-5 sm:h-5" />

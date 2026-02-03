@@ -26,18 +26,37 @@
 
   console.log('🤖 GeminiBot Embed Loading...', config);
 
+  // Detect if mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 640;
+
   // Create iframe container
   const createChatWidget = () => {
     // Create container
     const container = document.createElement('div');
     container.id = 'geminibot-widget';
-    container.style.cssText = `
-      position: fixed;
-      ${config.position.includes('right') ? 'right: 20px;' : 'left: 20px;'}
-      bottom: 20px;
-      z-index: 999999;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    `;
+    
+    if (isMobile) {
+      // Mobile: Fixed positioning covering entire screen when open
+      container.style.cssText = `
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        top: 0;
+        z-index: 999999;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        pointer-events: none;
+      `;
+    } else {
+      // Desktop: Bottom-right corner
+      container.style.cssText = `
+        position: fixed;
+        ${config.position.includes('right') ? 'right: 20px;' : 'left: 20px;'}
+        bottom: 20px;
+        z-index: 999999;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      `;
+    }
 
     // Create chat button
     const button = document.createElement('button');
@@ -47,20 +66,46 @@
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
       </svg>
     `;
-    button.style.cssText = `
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      border: none;
-      background: ${config.primaryColor};
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-    `;
+    
+    if (isMobile) {
+      // Mobile button styling
+      button.style.cssText = `
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: none;
+        background: ${config.primaryColor};
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 1000000;
+        pointer-events: auto;
+      `;
+    } else {
+      // Desktop button styling
+      button.style.cssText = `
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: none;
+        background: ${config.primaryColor};
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        pointer-events: auto;
+      `;
+    }
 
     button.onmouseover = () => {
       button.style.transform = 'scale(1.1)';
@@ -74,16 +119,36 @@
     // Create iframe
     const iframe = document.createElement('iframe');
     iframe.id = 'geminibot-iframe';
-    iframe.style.cssText = `
-      display: none;
-      width: 400px;
-      height: 600px;
-      max-height: 80vh;
-      border: none;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-      margin-bottom: 20px;
-    `;
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('scrolling', 'no');
+    
+    if (isMobile) {
+      // Mobile: Full screen
+      iframe.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        z-index: 999999;
+        pointer-events: auto;
+      `;
+    } else {
+      // Desktop: Floating window
+      iframe.style.cssText = `
+        display: none;
+        width: 400px;
+        height: 600px;
+        max-height: 85vh;
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        margin-bottom: 20px;
+        pointer-events: auto;
+      `;
+    }
 
     // Build iframe URL with config parameters
     const params = new URLSearchParams({
@@ -114,6 +179,11 @@
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         `;
+        
+        // On mobile, hide the button when chat is open
+        if (isMobile) {
+          button.style.display = 'none';
+        }
       } else {
         iframe.style.display = 'none';
         button.innerHTML = `
@@ -121,8 +191,27 @@
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
         `;
+        
+        // On mobile, show the button when chat is closed
+        if (isMobile) {
+          button.style.display = 'flex';
+        }
       }
     };
+
+    // Listen for close message from iframe (for mobile close button)
+    window.addEventListener('message', (event) => {
+      if (event.data === 'GEMINIBOT_CLOSE') {
+        isOpen = false;
+        iframe.style.display = 'none';
+        button.style.display = 'flex';
+        button.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        `;
+      }
+    });
 
     // Add to page
     container.appendChild(iframe);
