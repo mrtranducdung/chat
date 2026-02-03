@@ -12,18 +12,19 @@ const Widget: React.FC = () => {
   useEffect(() => {
     // Get configuration from URL parameters
     const params = new URLSearchParams(window.location.search);
-    
+
     const widgetConfig: AppConfig = {
       tenantId: params.get('tenantId') || 'default',
       botName: params.get('botName') || 'GeminiBot',
-      welcomeMessage: params.get('welcomeMessage') || 'Xin chào! Tôi có thể giúp gì cho bạn?',
+      welcomeMessage:
+        params.get('welcomeMessage') || 'Xin chào! Tôi có thể giúp gì cho bạn?',
       primaryColor: params.get('primaryColor') || '#2563eb',
       theme: (params.get('theme') as 'light' | 'dark') || 'light',
       enableSound: params.get('enableSound') !== 'false',
       enableFeedback: params.get('enableFeedback') !== 'false',
       suggestedQuestions: [],
       defaultLanguage: (params.get('language') as 'vi' | 'en') || 'vi',
-      systemPrompt: params.get('systemPrompt') || undefined
+      systemPrompt: params.get('systemPrompt') || undefined,
     };
 
     setConfig(widgetConfig);
@@ -36,24 +37,25 @@ const Widget: React.FC = () => {
 
   if (!config) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        height: '100vh',
-        fontFamily: 'sans-serif',
-        color: '#666'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          fontFamily: 'sans-serif',
+          color: '#666',
+          background: 'transparent',
+        }}
+      >
         Loading...
       </div>
     );
   }
 
-  return (
-    <div style={{ width: '100%', height: '100vh', overflow: 'hidden' }}>
-      <ChatWidget config={config} isEmbedded={true} />
-    </div>
-  );
+  // IMPORTANT:
+  // Do NOT wrap with height: 100vh. That forces the iframe page to be huge.
+  return <ChatWidget config={config} isEmbedded={true} />;
 };
 
 export default Widget;
