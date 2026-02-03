@@ -196,6 +196,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
     }, 500);
   };
 
+  const handleClose = () => {
+    setIsOpen(false);
+    // Notify parent iframe to close (for mobile)
+    if (window.parent !== window) {
+      window.parent.postMessage('GEMINIBOT_CLOSE', '*');
+    }
+  };
+
   const handleSendMessage = async (textOverride?: string) => {
     const textToSend = textOverride || inputValue.trim();
     if (!textToSend || isTyping) return;
@@ -453,16 +461,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
           )}
         </div>
 
-        {/* Close Button (only for non-embedded) - Notify parent on mobile */}
+        {/* Close Button (only for non-embedded) */}
         {!isEmbedded && (
           <button 
-            onClick={() => {
-              setIsOpen(false);
-              // Notify parent iframe to close (for mobile)
-              if (window.parent !== window) {
-                window.parent.postMessage('GEMINIBOT_CLOSE', '*');
-              }
-            }}
+            onClick={handleClose}
             className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition-all"
           >
             <XIcon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -596,10 +598,20 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
               sm:rounded-2xl shadow-2xl flex flex-col sm:mb-4 overflow-hidden 
               border-0 sm:border 
               animate-fade-in-up transition-all transform origin-bottom-right
+              relative
               ${isDark ? 'bg-gray-900 sm:border-gray-700' : 'bg-white sm:border-gray-200'}
             `}
           >
             {renderHeader()}
+
+            {/* Floating Close Button for Mobile - Always visible */}
+            <button
+              onClick={handleClose}
+              className="sm:hidden absolute top-3 right-3 z-50 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center backdrop-blur-sm"
+              style={{ color: config.primaryColor }}
+            >
+              <XIcon className="w-6 h-6" />
+            </button>
 
             {/* Messages Area */}
             <div 
