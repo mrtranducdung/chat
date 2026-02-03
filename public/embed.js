@@ -1,15 +1,3 @@
-/**
- * GeminiBot Embed Script
- * Add this script to any website to embed the chatbot
- *
- * Usage:
- * <script src="https://your-domain.com/embed.js"
- *         data-tenant-id="your-tenant-id"
- *         data-bot-name="YourBot"
- *         data-primary-color="#2563eb">
- * </script>
- */
-
 (function () {
   'use strict';
 
@@ -24,22 +12,18 @@
   };
 
   const isMobile =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
-    ) || window.innerWidth < 640;
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    window.innerWidth < 640;
 
   const createChatWidget = () => {
-    // Prevent double-inject
     if (document.getElementById('geminibot-widget')) return;
-
-    // Create container (IMPORTANT: do NOT make this fullscreen)
-    const container = document.createElement('div');
-    container.id = 'geminibot-widget';
 
     const isRight = config.position.includes('right');
     const isLeft = config.position.includes('left');
 
-    // Always keep container as a small fixed anchor in a corner
+    // Container will size to iframe (desktop). Not fullscreen.
+    const container = document.createElement('div');
+    container.id = 'geminibot-widget';
     container.style.cssText = `
       position: fixed;
       ${isLeft ? 'left: 20px;' : ''}
@@ -47,14 +31,9 @@
       bottom: 20px;
       z-index: 999999;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: ${isLeft ? 'flex-start' : 'flex-end'};
-      gap: 12px;
-      pointer-events: none; /* allow only children to interact */
+      pointer-events: none;
     `;
 
-    // Create button
     const button = document.createElement('button');
     button.id = 'geminibot-button';
     button.type = 'button';
@@ -64,7 +43,11 @@
       </svg>
     `;
 
+    // IMPORTANT: fixed button so it does NOT affect container size.
     button.style.cssText = `
+      position: fixed;
+      ${isLeft ? 'left: 20px;' : 'right: 20px;'}
+      bottom: 20px;
       width: ${isMobile ? '56px' : '60px'};
       height: ${isMobile ? '56px' : '60px'};
       border-radius: 50%;
@@ -78,6 +61,7 @@
       justify-content: center;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       pointer-events: auto;
+      z-index: 1000000;
     `;
 
     button.onmouseover = () => {
@@ -89,14 +73,13 @@
       button.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
     };
 
-    // Create iframe
     const iframe = document.createElement('iframe');
     iframe.id = 'geminibot-iframe';
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('scrolling', 'no');
     iframe.setAttribute('title', 'GeminiBot Chat');
 
-    // Desktop default size (floating window)
+    // Desktop iframe in normal flow => container == iframe size
     iframe.style.cssText = `
       display: none;
       width: 400px;
@@ -109,7 +92,6 @@
       background: transparent;
     `;
 
-    // Build iframe URL with config parameters
     const params = new URLSearchParams({
       tenantId: config.tenantId,
       botName: config.botName,
@@ -127,8 +109,8 @@
     const openChat = () => {
       isOpen = true;
 
-      // On mobile, make iframe fullscreen (NOT the container)
       if (isMobile) {
+        // Mobile: iframe fullscreen, button hidden
         iframe.style.cssText = `
           display: block;
           position: fixed;
@@ -145,10 +127,11 @@
           pointer-events: auto;
           background: transparent;
         `;
-        // Hide launcher button on mobile when open
         button.style.display = 'none';
       } else {
+        // Desktop: show iframe above the button (button is fixed)
         iframe.style.display = 'block';
+        iframe.style.marginBottom = '80px'; // create space so iframe doesn't overlap the button
       }
 
       button.innerHTML = `
@@ -163,8 +146,8 @@
       isOpen = false;
       iframe.style.display = 'none';
 
-      // Restore desktop iframe style if mobile toggled fullscreen previously
       if (isMobile) {
+        // restore desktop-like base style for next open
         iframe.style.cssText = `
           display: none;
           width: 400px;
@@ -191,17 +174,15 @@
       else openChat();
     };
 
-    // Listen for close message from iframe
     window.addEventListener('message', (event) => {
       if (event.data === 'GEMINIBOT_CLOSE') {
         closeChat();
       }
     });
 
-    // Add to page (iframe above button visually)
     container.appendChild(iframe);
-    container.appendChild(button);
     document.body.appendChild(container);
+    document.body.appendChild(button);
   };
 
   if (document.readyState === 'loading') {
