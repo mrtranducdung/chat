@@ -16,16 +16,16 @@
     const isRight = config.position.includes('right');
     const isLeft = config.position.includes('left');
 
-    // A tiny container (not fullscreen)
+    // IMPORTANT: pointer-events MUST be auto so iframe can scroll/click reliably
     const container = document.createElement('div');
     container.id = 'geminibot-widget';
     container.style.cssText = `
       position: fixed;
       z-index: 999999;
-      pointer-events: none;
+      pointer-events: auto;
     `;
 
-    // ---- Button (fixed, toggles open/close) ----
+    // Button
     const button = document.createElement('button');
     button.id = 'geminibot-button';
     button.type = 'button';
@@ -76,27 +76,28 @@
       button.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
     };
 
-    // ---- Iframe (floating) ----
+    // Iframe
     const iframe = document.createElement('iframe');
     iframe.id = 'geminibot-iframe';
     iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('scrolling', 'no'); // iframe itself doesn't scroll; inside does
+    iframe.setAttribute('scrolling', 'no'); // scroll happens inside the iframe content
     iframe.setAttribute('title', 'GeminiBot Chat');
 
-    // Size clamps you said work well
+    // Your clamp sizes
     const w = 'clamp(200px, 25vw, 420px)';
     const h = 'clamp(380px, 60vh, 620px)';
 
-    // We'll position using LEFT/TOP so we can drag easily.
+    // Position state (we drag using left/top)
     const state = {
       open: false,
-      x: 0, // left
-      y: 0, // top
+      x: 0,
+      y: 0,
       dragging: false,
       dragStartX: 0,
       dragStartY: 0,
       originX: 0,
       originY: 0,
+      hasPositionedOnce: false,
     };
 
     const applyIframeStyle = () => {
@@ -116,7 +117,7 @@
       `;
     };
 
-    // Drag handle overlay (on top of iframe header area)
+    // Drag handle only over header area
     const dragHandle = document.createElement('div');
     dragHandle.id = 'geminibot-drag-handle';
     dragHandle.style.cssText = `
@@ -124,14 +125,14 @@
       position: fixed;
       left: ${state.x}px;
       top: ${state.y}px;
-      height: 52px; /* match your header height area */
+      height: 52px;
       width: calc(${w});
       cursor: move;
       z-index: 1000001;
       pointer-events: auto;
       background: transparent;
       border-radius: 16px 16px 0 0;
-      touch-action: none; /* important for mobile dragging */
+      touch-action: none;
     `;
 
     const applyHandleStyle = () => {
@@ -142,23 +143,22 @@
     };
 
     const clampToViewport = () => {
-      // After styles apply, use actual rendered size
       const rect = iframe.getBoundingClientRect();
       const maxX = Math.max(0, window.innerWidth - rect.width);
       const maxY = Math.max(0, window.innerHeight - rect.height);
-
       state.x = Math.max(0, Math.min(state.x, maxX));
       state.y = Math.max(0, Math.min(state.y, maxY));
     };
 
-    const positionInitial = () => {
-      // Place near bottom corner, above the button
-      // We'll estimate with a conservative default, then clamp after render
-      const defaultWidth = 360;
-      const defaultHeight = 520;
+    // ✅ Correct bottom-right start: measure real size after open and place it
+    const positionBottomCornerUsingRealSize = () => {
+      const rect = iframe.getBoundingClientRect();
+      const padding = 16;
+      const aboveButton = 88; // button + gap
 
-      state.x = isLeft ? 16 : Math.max(0, window.innerWidth - defaultWidth - 16);
-      state.y = Math.max(0, window.innerHeight - defaultHeight - 88); // above launcher button
+      state.x = isLeft ? padding : Math.max(0, window.innerWidth - rect.width - padding);
+      state.y = Math.max(0, window.innerHeight - rect.height - aboveButton);
+      clampToViewport();
     };
 
     // iframe URL
@@ -177,17 +177,14 @@
     const syncUI = () => {
       applyButtonStyle();
       setButtonIcon(state.open);
-
-      // Ensure initial position exists
-      if (state.x === 0 && state.y === 0) positionInitial();
-
       applyIframeStyle();
       applyHandleStyle();
 
-      // Once open, clamp using real size
-      if (state.open) {
+      if (state.open && !state.hasPositionedOnce) {
+        // Wait for browser to compute real rect, then place bottom-right
         requestAnimationFrame(() => {
-          clampToViewport();
+          positionBottomCornerUsingRealSize();
+          state.hasPositionedOnce = true;
           applyIframeStyle();
           applyHandleStyle();
         });
@@ -208,12 +205,11 @@
       state.open ? closeChat() : openChat();
     };
 
-    // Close message from iframe (optional)
     window.addEventListener('message', (event) => {
       if (event.data === 'GEMINIBOT_CLOSE') closeChat();
     });
 
-    // --- Drag logic (handle only) ---
+    // Drag logic
     const getPoint = (e) => {
       if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
       return { x: e.clientX, y: e.clientY };
@@ -233,10 +229,8 @@
     const onDragMove = (e) => {
       if (!state.dragging) return;
       const p = getPoint(e);
-      const dx = p.x - state.dragStartX;
-      const dy = p.y - state.dragStartY;
-      state.x = state.originX + dx;
-      state.y = state.originY + dy;
+      state.x = state.originX + (p.x - state.dragStartX);
+      state.y = state.originY + (p.y - state.dragStartY);
       clampToViewport();
       applyIframeStyle();
       applyHandleStyle();
@@ -255,13 +249,16 @@
     window.addEventListener('touchmove', onDragMove, { passive: false });
     window.addEventListener('touchend', onDragEnd);
 
-    // responsive reflow
+    // Resize/orientation: keep it on-screen
     let t = null;
     const onResize = () => {
       clearTimeout(t);
       t = setTimeout(() => {
-        clampToViewport();
-        syncUI();
+        if (state.open) {
+          clampToViewport();
+          applyIframeStyle();
+          applyHandleStyle();
+        }
       }, 80);
     };
     window.addEventListener('resize', onResize);
@@ -273,7 +270,6 @@
     document.body.appendChild(dragHandle);
     document.body.appendChild(button);
 
-    // Initial
     syncUI();
   };
 
