@@ -16,6 +16,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
 
   // Embedded mode (inside iframe): NO red close button.
   // Host page (embed.js) controls open/close via its own button + postMessage close.
+// If embedded, render chat to FILL the iframe (no floating, no draggable offsets)
   if (isEmbedded) {
     return (
       <>
@@ -24,17 +25,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
         {chat.isOpen && (
           <div
             ref={drag.elementRef}
-            className={`fixed flex flex-col overflow-hidden rounded-2xl shadow-2xl border
-              ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}
+            className={`w-full h-full flex flex-col overflow-hidden
+              ${isDark ? 'bg-gray-900' : 'bg-white'}
             `}
             style={{
-              width: 'min(400px, 50vw)',
-              height: 'min(600px, 60vh)',
-              right: drag.position.x === 0 ? '20px' : 'auto',
-              bottom: drag.position.y === 0 ? '20px' : 'auto',
-              left: drag.position.x !== 0 ? `${drag.position.x}px` : 'auto',
-              top: drag.position.y !== 0 ? `${drag.position.y}px` : 'auto',
-              zIndex: 999999,
+              // IMPORTANT: embed should fill iframe, NOT be fixed popup
+              position: 'relative',
+              width: '100%',
+              height: '100%',
             }}
           >
             <ChatHeader
@@ -46,7 +44,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
               setIsLangMenuOpen={chat.setIsLangMenuOpen}
               setLanguage={chat.setLanguage}
               onNewConversation={chat.startNewConversation}
-              onDragStart={drag.handleDragStart}
+              // Optional: disable drag in embed by NOT passing onDragStart
+              onDragStart={undefined as any}
               isDark={isDark}
             />
 
@@ -102,6 +101,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
       </>
     );
   }
+
 
   // Normal mode: remove the red close button and only use the blue launcher button.
   return (

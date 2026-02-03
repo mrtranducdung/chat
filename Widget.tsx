@@ -2,22 +2,23 @@ import React, { useEffect, useState } from 'react';
 import ChatWidget from './components/ChatWidget';
 import { AppConfig } from './types';
 
-/**
- * Standalone Widget Page
- * This page is loaded in an iframe for embedding on external sites
- */
 const Widget: React.FC = () => {
   const [config, setConfig] = useState<AppConfig | null>(null);
 
   useEffect(() => {
-    // Get configuration from URL parameters
+    // hard reset iframe page layout
+    document.documentElement.style.height = '100%';
+    document.body.style.height = '100%';
+    document.body.style.margin = '0';
+    document.body.style.background = 'transparent';
+    document.body.style.overflow = 'hidden';
+
     const params = new URLSearchParams(window.location.search);
 
     const widgetConfig: AppConfig = {
       tenantId: params.get('tenantId') || 'default',
       botName: params.get('botName') || 'GeminiBot',
-      welcomeMessage:
-        params.get('welcomeMessage') || 'Xin chào! Tôi có thể giúp gì cho bạn?',
+      welcomeMessage: params.get('welcomeMessage') || 'Xin chào! Tôi có thể giúp gì cho bạn?',
       primaryColor: params.get('primaryColor') || '#2563eb',
       theme: (params.get('theme') as 'light' | 'dark') || 'light',
       enableSound: params.get('enableSound') !== 'false',
@@ -29,33 +30,18 @@ const Widget: React.FC = () => {
 
     setConfig(widgetConfig);
 
-    // Notify parent that widget is ready
     if (window.parent !== window) {
       window.parent.postMessage({ type: 'GEMINIBOT_READY' }, '*');
     }
   }, []);
 
-  if (!config) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          fontFamily: 'sans-serif',
-          color: '#666',
-          background: 'transparent',
-        }}
-      >
-        Loading...
-      </div>
-    );
-  }
+  if (!config) return null;
 
-  // IMPORTANT:
-  // Do NOT wrap with height: 100vh. That forces the iframe page to be huge.
-  return <ChatWidget config={config} isEmbedded={true} />;
+  return (
+    <div style={{ width: '100%', height: '100%' }}>
+      <ChatWidget config={config} isEmbedded={true} />
+    </div>
+  );
 };
 
 export default Widget;
