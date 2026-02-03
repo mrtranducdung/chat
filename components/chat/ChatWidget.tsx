@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { XIcon, MessageCircleIcon } from '../Icons';
 import { ChatWidgetProps } from '../../types';
@@ -9,7 +9,17 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { SuggestedQuestions } from './SuggestedQuestions';
 
-const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) => {
+interface ExtendedChatWidgetProps extends ChatWidgetProps {
+  externalControl?: boolean;
+  forceOpen?: boolean;
+}
+
+const ChatWidget: React.FC<ExtendedChatWidgetProps> = ({ 
+  config, 
+  isEmbedded = false,
+  externalControl = false,
+  forceOpen = false
+}) => {
   const chat = useChatLogic(config, isEmbedded);
   const drag = useDraggable();
   const isDark = config.theme === 'dark';
@@ -18,6 +28,20 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
   const headerWrapRef = useRef<HTMLDivElement>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
   const [dynamicHeight, setDynamicHeight] = useState<number>(220);
+
+  // Sync external control (when button is outside iframe)
+  useEffect(() => {
+    if (externalControl) {
+      chat.setIsOpen(forceOpen);
+    }
+  }, [externalControl, forceOpen, chat]);
+
+  // Notify parent when chat closes (for external control)
+  useEffect(() => {
+    if (externalControl && !chat.isOpen && window.parent) {
+      window.parent.postMessage('GEMINIBOT_CLOSE', '*');
+    }
+  }, [externalControl, chat.isOpen]);
 
   useLayoutEffect(() => {
     if (!chat.isOpen || isEmbedded) return;
@@ -40,7 +64,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
     setDynamicHeight(Math.max(min, Math.min(desired, max)));
   }, [chat.isOpen, chat.messages.length, chat.isTyping, isEmbedded]);
 
-  // Embedded: fill iframe and ensure scroll works (especially on mobile)
+  // Embedded mode (kept for compatibility but not used with new approach)
   if (isEmbedded) {
     return (
       <>
@@ -117,6 +141,102 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
               retryMessage={chat.retryMessage}
               onRetry={chat.handleRetry}
             />
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // If externally controlled, don't render the button
+  if (externalControl) {
+    return (
+      <>
+        <Toaster />
+
+        {chat.isOpen && (
+            <div
+              ref={drag.elementRef}
+              className={`fixed rounded-2xl shadow-2xl flex flex-col overflow-hidden border z-50 ${
+                isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+              }`}
+              style={{
+                width: 'min(400px, 50vw)',
+                height: `${dynamicHeight}px`,
+                maxHeight: 'min(600px, 60vh)',
+                minHeight: '220px',
+                right: drag.position.x === 0 ? '20px' : 'auto',
+                bottom: drag.position.y === 0 ? '90px' : 'auto',
+                left: drag.position.x !== 0 ? `${drag.position.x}px` : 'auto',
+                top: drag.position.y !== 0 ? `${drag.position.y}px` : 'auto',
+                resize: 'both',
+                overflow: 'hidden',
+                pointerEvents: 'auto', // ADD THIS LINE - chat window captures clicks
+              }}
+            >
+            <div ref={headerWrapRef}>
+              <ChatHeader
+                botName={config.botName}
+                primaryColor={config.primaryColor}
+                isOnline={chat.isOnline}
+                language={chat.language}
+                isLangMenuOpen={chat.isLangMenuOpen}
+                setIsLangMenuOpen={chat.setIsLangMenuOpen}
+                setLanguage={chat.setLanguage}
+                onNewConversation={chat.startNewConversation}
+                onDragStart={drag.handleDragStart}
+                isDark={isDark}
+              />
+            </div>
+
+            <div
+              ref={chat.scrollContainerRef}
+              className={`flex-1 overflow-y-auto p-3 sm:p-4 ${
+                isDark ? 'bg-gray-900' : 'bg-gray-50'
+              }`}
+            >
+              {chat.messages.map((msg, index) => (
+                <ChatMessage
+                  key={msg.id}
+                  message={msg}
+                  isTyping={chat.isTyping}
+                  isLastMessage={index === chat.messages.length - 1}
+                  isDark={isDark}
+                  primaryColor={config.primaryColor}
+                  language={chat.language}
+                  enableFeedback={config.enableFeedback}
+                  onFeedback={chat.handleFeedback}
+                  onCopy={chat.copyToClipboard}
+                  onRegenerate={chat.regenerateResponse}
+                />
+              ))}
+
+              {!chat.isTyping && chat.messages.length === 1 && (
+                <SuggestedQuestions
+                  questions={config.suggestedQuestions || []}
+                  onSelect={chat.handleSendMessage}
+                  isDark={isDark}
+                />
+              )}
+
+              <div ref={chat.messagesEndRef} />
+            </div>
+
+            <div ref={inputWrapRef}>
+              <ChatInput
+                value={chat.inputValue}
+                onChange={chat.setInputValue}
+                onSend={() => chat.handleSendMessage()}
+                onKeyDown={chat.handleKeyDown}
+                disabled={!chat.isOnline}
+                isTyping={chat.isTyping}
+                primaryColor={config.primaryColor}
+                language={chat.language}
+                isDark={isDark}
+                error={chat.error}
+                retryMessage={chat.retryMessage}
+                onRetry={chat.handleRetry}
+              />
+            </div>
           </div>
         )}
       </>

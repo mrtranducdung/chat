@@ -4,15 +4,18 @@ import { AppConfig } from './types';
 
 const Widget: React.FC = () => {
   const [config, setConfig] = useState<AppConfig | null>(null);
+  const [forceOpen, setForceOpen] = useState(false);
 
   useEffect(() => {
-    document.documentElement.style.height = '100%';
-    document.body.style.height = '100%';
-    document.body.style.margin = '0';
+    // Make body transparent and allow clicks to pass through
     document.body.style.background = 'transparent';
+    document.body.style.margin = '0';
     document.body.style.overflow = 'hidden';
-
+    // CRITICAL: Make the page transparent to clicks
+    document.body.style.pointerEvents = 'none';
+    
     const params = new URLSearchParams(window.location.search);
+    const hideButton = params.get('hideButton') === 'true';
 
     const widgetConfig: AppConfig = {
       tenantId: params.get('tenantId') || 'default',
@@ -29,16 +32,38 @@ const Widget: React.FC = () => {
 
     setConfig(widgetConfig);
 
-    if (window.parent !== window) {
-      window.parent.postMessage({ type: 'GEMINIBOT_READY' }, '*');
+    // Listen for toggle messages from parent
+    if (hideButton) {
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data?.type === 'GEMINIBOT_TOGGLE') {
+          setForceOpen(event.data.isOpen);
+        }
+      };
+      
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
     }
   }, []);
 
   if (!config) return null;
 
+  const params = new URLSearchParams(window.location.search);
+  const hideButton = params.get('hideButton') === 'true';
+
   return (
-    <div style={{ width: '100%', height: '100%' }}>
-      <ChatWidget config={config} isEmbedded={true} />
+    <div style={{ 
+      width: '100%', 
+      height: '100%',
+      pointerEvents: 'none' // Make wrapper transparent to clicks
+    }}>
+      <ChatWidget 
+        config={config} 
+        isEmbedded={false}
+        {...(hideButton ? { 
+          externalControl: true,
+          forceOpen: forceOpen 
+        } : {})}
+      />
     </div>
   );
 };
