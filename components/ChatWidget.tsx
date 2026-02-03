@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import toast, { Toaster } from 'react-hot-toast';
-import copy from 'copy-to-clipboard';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, prism } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import copy from 'copy-to-clipboard';
 import { MessageCircleIcon, XIcon, SendIcon, UserIcon, ThumbsUpIcon, ThumbsDownIcon } from './Icons';
 import { Message, Sender, ChatWidgetProps, Language, UI_STRINGS, Feedback } from '../types';
 import { generateResponseStream, detectLanguage } from '../services/geminiService';
@@ -294,22 +294,22 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
   const renderMessage = (msg: Message, index: number) => (
     <div
       key={msg.id}
-      className={`mb-4 flex flex-col ${msg.sender === Sender.USER ? 'items-end' : 'items-start'}`}
+      className={`mb-3 sm:mb-4 flex flex-col ${msg.sender === Sender.USER ? 'items-end' : 'items-start'}`}
     >
-      <div className={`flex items-end gap-2 max-w-full ${msg.sender === Sender.USER ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex items-end gap-1.5 sm:gap-2 max-w-[90%] sm:max-w-[85%] ${msg.sender === Sender.USER ? 'flex-row-reverse' : 'flex-row'}`}>
         <div 
-          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border shadow-sm ${
+          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 border shadow-sm ${
             msg.sender === Sender.USER 
               ? (isDark ? 'bg-gray-700 border-gray-600 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-500')
               : (isDark ? 'bg-gray-800 border-gray-700 text-blue-400' : 'bg-white border-blue-100 text-blue-600')
           }`}
           style={msg.sender === Sender.BOT && !isDark ? { color: config.primaryColor } : {}}
         >
-          {msg.sender === Sender.USER ? <UserIcon className="w-5 h-5" /> : <MessageCircleIcon className="w-5 h-5" />}
+          {msg.sender === Sender.USER ? <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" /> : <MessageCircleIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
         </div>
 
         <div
-          className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed shadow-sm prose relative group ${
+          className={`p-2.5 sm:p-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm prose prose-sm sm:prose relative group ${
             msg.sender === Sender.USER
               ? 'bg-blue-600 text-white rounded-tr-none'
               : (isDark ? 'bg-gray-800 text-gray-200 border border-gray-700 rounded-tl-none' : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none')
@@ -328,6 +328,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
                         style={isDark ? vscDarkPlus : prism}
                         language={match[1]}
                         PreTag="div"
+                        customStyle={{ fontSize: '0.75rem', margin: '0.5rem 0' }}
                         {...props}
                       >
                         {String(children).replace(/\n$/, '')}
@@ -345,9 +346,9 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
             )
           }
           
-          {/* Timestamp on hover */}
+          {/* Timestamp on hover - hidden on mobile */}
           {msg.text && (
-            <div className="absolute -bottom-5 left-0 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            <div className="hidden sm:block absolute -bottom-5 left-0 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
               {new Date(msg.timestamp).toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US', {
                 hour: '2-digit',
                 minute: '2-digit'
@@ -357,33 +358,33 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
         </div>
       </div>
 
-      {/* Action buttons for bot messages */}
+      {/* Action buttons for bot messages - Mobile optimized */}
       {config.enableFeedback && msg.sender === Sender.BOT && msg.id !== 'welcome' && msg.text !== "" && (
-        <div className={`flex gap-1 mt-1 ml-10 transition-opacity duration-300 ${isTyping && index === messages.length - 1 ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`flex gap-1 mt-1 ml-8 sm:ml-10 transition-opacity duration-300 ${isTyping && index === messages.length - 1 ? 'opacity-0' : 'opacity-100'}`}>
           <button 
             onClick={() => handleFeedback(msg.id, msg.text, 'up')} 
-            className={`p-1 hover:bg-gray-100/10 rounded transition-colors ${msg.feedback === 'up' ? 'text-green-600' : 'text-gray-400'}`}
+            className={`p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors ${msg.feedback === 'up' ? 'text-green-600' : 'text-gray-400'}`}
             title={language === 'vi' ? 'Hữu ích' : 'Helpful'}
           >
-            <ThumbsUpIcon className="w-3.5 h-3.5" />
+            <ThumbsUpIcon className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
           </button>
           <button 
             onClick={() => handleFeedback(msg.id, msg.text, 'down')} 
-            className={`p-1 hover:bg-gray-100/10 rounded transition-colors ${msg.feedback === 'down' ? 'text-red-600' : 'text-gray-400'}`}
+            className={`p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors ${msg.feedback === 'down' ? 'text-red-600' : 'text-gray-400'}`}
             title={language === 'vi' ? 'Không hữu ích' : 'Not helpful'}
           >
-            <ThumbsDownIcon className="w-3.5 h-3.5" />
+            <ThumbsDownIcon className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
           </button>
           <button 
             onClick={() => copyToClipboard(msg.text)}
-            className="p-1 hover:bg-gray-100/10 rounded transition-colors text-gray-400 hover:text-blue-600"
+            className="p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors text-gray-400 hover:text-blue-600 text-sm"
             title={language === 'vi' ? 'Sao chép' : 'Copy'}
           >
             📋
           </button>
           <button 
             onClick={() => regenerateResponse(msg.id)}
-            className="p-1 hover:bg-gray-100/10 rounded transition-colors text-gray-400 hover:text-purple-600"
+            className="p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors text-gray-400 hover:text-purple-600 text-sm"
             title={language === 'vi' ? 'Tạo lại câu trả lời' : 'Regenerate'}
           >
             🔄
@@ -396,26 +397,26 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
   // Header component
   const renderHeader = () => (
     <div 
-      className="p-4 text-white flex justify-between items-center shadow-md relative z-10"
+      className="p-3 sm:p-4 text-white flex justify-between items-center shadow-md relative z-10"
       style={{ backgroundColor: config.primaryColor }}
     >
       <div className="flex items-center gap-2">
         <div className="relative">
-          <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-red-400'} border-2 border-white/20`}></div>
+          <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-red-400'} border-2 border-white/20`}></div>
         </div>
         <div className="flex flex-col">
-          <h3 className="font-bold text-base leading-tight">{config.botName}</h3>
-          <span className="text-[10px] opacity-80 uppercase tracking-wider">
+          <h3 className="font-bold text-sm sm:text-base leading-tight">{config.botName}</h3>
+          <span className="text-[9px] sm:text-[10px] opacity-80 uppercase tracking-wider">
             {isOnline ? (language === 'vi' ? 'Trực tuyến' : 'Online') : (language === 'vi' ? 'Ngoại tuyến' : 'Offline')}
           </span>
         </div>
       </div>
       
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* New Chat Button */}
         <button 
           onClick={startNewConversation}
-          className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition-all"
+          className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition-all text-sm"
           title={language === 'vi' ? 'Cuộc trò chuyện mới' : 'New conversation'}
         >
           🔄
@@ -425,15 +426,16 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
         <div className="relative">
           <button 
             onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-            className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-xs px-2 py-1 rounded transition-colors text-white font-medium"
+            className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-[10px] sm:text-xs px-1.5 sm:px-2 py-1 rounded transition-colors text-white font-medium"
           >
-            {language === 'vi' ? '🇻🇳 VI' : '🇺🇸 EN'}
+            {language === 'vi' ? '🇻🇳' : '🇺🇸'}
+            <span className="hidden sm:inline">{language === 'vi' ? ' VI' : ' EN'}</span>
           </button>
           
           {isLangMenuOpen && (
             <>
               <div className="fixed inset-0 z-10 cursor-default" onClick={() => setIsLangMenuOpen(false)}></div>
-              <div className="absolute right-0 mt-2 w-24 bg-white rounded-lg shadow-xl py-1 z-20 overflow-hidden animate-fade-in text-gray-800">
+              <div className="absolute right-0 mt-2 w-32 sm:w-24 bg-white rounded-lg shadow-xl py-1 z-20 overflow-hidden animate-fade-in text-gray-800">
                 <button 
                   onClick={() => { setLanguage('vi'); setIsLangMenuOpen(false); }}
                   className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center gap-2 ${language === 'vi' ? 'text-blue-600 font-bold bg-blue-50' : ''}`}
@@ -457,14 +459,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
             onClick={() => setIsOpen(false)}
             className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition-all"
           >
-            <XIcon className="w-5 h-5" />
+            <XIcon className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         )}
       </div>
 
       {/* Offline indicator */}
       {!isOnline && (
-        <div className="absolute top-full left-0 right-0 bg-red-500 text-white text-xs py-1 px-4 text-center">
+        <div className="absolute top-full left-0 right-0 bg-red-500 text-white text-[10px] sm:text-xs py-1 px-4 text-center">
           {language === 'vi' ? '⚠️ Không có kết nối' : '⚠️ No connection'}
         </div>
       )}
@@ -474,7 +476,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
   // Input area component
   const renderInputArea = () => (
     <>
-      <div className={`p-4 border-t ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-100'}`}>
+      <div className={`p-3 sm:p-4 border-t ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-100'}`}>
         <div className="flex items-center gap-2 relative">
           <input
             type="text"
@@ -484,7 +486,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
             placeholder={UI_STRINGS[language].placeholder}
             maxLength={2000}
             disabled={!isOnline}
-            className={`w-full rounded-full pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all text-sm
+            className={`w-full rounded-full pl-3 sm:pl-4 pr-10 sm:pr-12 py-2.5 sm:py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all text-xs sm:text-sm
             ${isDark ? 'bg-gray-800 text-white placeholder-gray-500' : 'bg-gray-100 text-gray-800'}
             ${!isOnline ? 'opacity-50 cursor-not-allowed' : ''}
             `}
@@ -493,13 +495,13 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
           <button
             onClick={() => handleSendMessage()}
             disabled={!inputValue.trim() || isTyping || !isOnline}
-            className="absolute right-2 p-2 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+            className="absolute right-1.5 sm:right-2 p-1.5 sm:p-2 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
             style={{ backgroundColor: config.primaryColor }}
           >
-            <SendIcon className="w-4 h-4" />
+            <SendIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
-        <div className="flex justify-between items-center text-[10px] text-gray-400 mt-2">
+        <div className="flex justify-between items-center text-[9px] sm:text-[10px] text-gray-400 mt-1.5 sm:mt-2">
           <span>{UI_STRINGS[language].poweredBy}</span>
           {inputValue && (
             <span className={inputValue.length > 1500 ? 'text-red-500' : ''}>
@@ -511,15 +513,15 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
 
       {/* Error retry UI */}
       {error && retryMessage && (
-        <div className="px-4 pb-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center justify-between">
-            <span className="text-xs text-red-700">{error}</span>
+        <div className="px-3 sm:px-4 pb-3 sm:pb-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-2 sm:p-3 flex items-center justify-between">
+            <span className="text-[10px] sm:text-xs text-red-700">{error}</span>
             <button
               onClick={() => {
                 setError(null);
                 handleSendMessage(retryMessage);
               }}
-              className="text-xs text-red-600 hover:text-red-700 font-medium px-3 py-1 bg-red-100 rounded"
+              className="text-[10px] sm:text-xs text-red-600 hover:text-red-700 font-medium px-2 sm:px-3 py-1 bg-red-100 rounded"
             >
               {language === 'vi' ? 'Thử lại' : 'Retry'}
             </button>
@@ -543,14 +545,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
 
           {/* Messages Area */}
           <div 
-            className={`flex-1 overflow-y-auto p-4 scrollbar-hide ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+            className={`flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-hide ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
             ref={scrollContainerRef}
           >
             {messages.map((msg, index) => renderMessage(msg, index))}
             
             {/* Suggested Questions */}
             {!isTyping && (messages.length === 1) && config.suggestedQuestions && config.suggestedQuestions.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4 ml-10 animate-fade-in">
+              <div className="flex flex-wrap gap-2 mt-4 ml-8 sm:ml-10 animate-fade-in">
                 {config.suggestedQuestions.map((q, idx) => (
                   <button
                     key={idx}
@@ -576,29 +578,33 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
     );
   }
 
-  // Normal mode with floating button
+  // Normal mode with floating button - Mobile responsive
   return (
     <>
       <Toaster />
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+      <div className="fixed bottom-0 right-0 left-0 sm:bottom-6 sm:right-6 sm:left-auto z-50 flex flex-col items-end pointer-events-none">
         {isOpen && (
           <div 
-            className={`pointer-events-auto w-[90vw] sm:w-[380px] h-[550px] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col mb-4 overflow-hidden border animate-fade-in-up transition-all transform origin-bottom-right
-            ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}
+            className={`pointer-events-auto 
+              w-full h-screen sm:w-[380px] sm:h-[550px] sm:max-h-[80vh] 
+              sm:rounded-2xl shadow-2xl flex flex-col sm:mb-4 overflow-hidden 
+              border-0 sm:border 
+              animate-fade-in-up transition-all transform origin-bottom-right
+              ${isDark ? 'bg-gray-900 sm:border-gray-700' : 'bg-white sm:border-gray-200'}
             `}
           >
             {renderHeader()}
 
             {/* Messages Area */}
             <div 
-              className={`flex-1 overflow-y-auto p-4 scrollbar-hide ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+              className={`flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-hide ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
               ref={scrollContainerRef}
             >
               {messages.map((msg, index) => renderMessage(msg, index))}
               
               {/* Suggested Questions */}
               {!isTyping && (messages.length === 1) && config.suggestedQuestions && config.suggestedQuestions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4 ml-10 animate-fade-in">
+                <div className="flex flex-wrap gap-2 mt-4 ml-8 sm:ml-10 animate-fade-in">
                   {config.suggestedQuestions.map((q, idx) => (
                     <button
                       key={idx}
@@ -622,8 +628,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
           </div>
         )}
 
-        {/* Launcher */}
-        <div className="relative pointer-events-auto group">
+        {/* Launcher - Mobile optimized */}
+        <div className="relative pointer-events-auto group mb-4 mr-4 sm:mb-0 sm:mr-0">
           {unreadCount > 0 && !isOpen && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-md z-10 animate-bounce">
               {unreadCount > 9 ? '9+' : unreadCount}
@@ -631,10 +637,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
           )}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="p-4 rounded-full text-white shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center"
+            className="p-3 sm:p-4 rounded-full text-white shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center"
             style={{ backgroundColor: config.primaryColor }}
           >
-            {isOpen ? <XIcon className="w-8 h-8" /> : <MessageCircleIcon className="w-8 h-8" />}
+            {isOpen ? <XIcon className="w-6 h-6 sm:w-8 sm:h-8" /> : <MessageCircleIcon className="w-6 h-6 sm:w-8 sm:h-8" />}
           </button>
         </div>
       </div>
