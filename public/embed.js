@@ -3,7 +3,6 @@
 
   const scriptTag = document.currentScript;
   const config = {
-    apiUrl: scriptTag.getAttribute('data-api-url') || 'http://localhost:3001/api',
     tenantId: scriptTag.getAttribute('data-tenant-id') || 'default',
     botName: scriptTag.getAttribute('data-bot-name') || 'GeminiBot',
     primaryColor: scriptTag.getAttribute('data-primary-color') || '#2563eb',
@@ -11,30 +10,22 @@
     language: scriptTag.getAttribute('data-language') || 'vi',
   };
 
-  const computeIsMobile = () =>
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-    window.innerWidth < 640;
-
   const createChatWidget = () => {
     if (document.getElementById('geminibot-widget')) return;
 
     const isRight = config.position.includes('right');
     const isLeft = config.position.includes('left');
 
-    // Container: anchor (never fullscreen)
+    // Container is only an anchor; does not control sizing.
     const container = document.createElement('div');
     container.id = 'geminibot-widget';
     container.style.cssText = `
       position: fixed;
-      ${isLeft ? 'left: 20px;' : ''}
-      ${isRight || !isLeft ? 'right: 20px;' : ''}
-      bottom: 20px;
       z-index: 999999;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      pointer-events: auto;
+      pointer-events: none;
     `;
 
-    // Button: fixed, independent of container size
+    // --- Button (always visible; toggles open/close) ---
     const button = document.createElement('button');
     button.id = 'geminibot-button';
     button.type = 'button';
@@ -55,13 +46,12 @@
     };
 
     const applyButtonStyle = () => {
-      const isMobile = computeIsMobile();
       button.style.cssText = `
         position: fixed;
         ${isLeft ? 'left: 16px;' : 'right: 16px;'}
         bottom: 16px;
-        width: ${isMobile ? '56px' : '60px'};
-        height: ${isMobile ? '56px' : '60px'};
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
         border: none;
         background: ${config.primaryColor};
@@ -86,46 +76,41 @@
       button.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
     };
 
-    // Iframe
+    // --- Iframe (ALWAYS floating, responsive size ~1/4 screen) ---
     const iframe = document.createElement('iframe');
     iframe.id = 'geminibot-iframe';
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('scrolling', 'no');
     iframe.setAttribute('title', 'GeminiBot Chat');
 
-    const applyIframeDesktopStyle = () => {
+    const applyIframeStyle = () => {
+      // Always about 1/4 of screen width, but keep a usable min/max.
+      // Adjust these numbers if you want tighter/looser:
+      // - min width 300px
+      // - max width 420px
+      // - width target 25vw
+      const w = 'clamp(300px, 25vw, 420px)';
+
+      // Height: responsive but not too small. Target 60vh, min 380, max 620.
+      const h = 'clamp(380px, 60vh, 620px)';
+
       iframe.style.cssText = `
         display: none;
-        width: 400px;
-        height: 600px;
-        max-height: 85vh;
+        position: fixed;
+        ${isLeft ? 'left: 16px;' : 'right: 16px;'}
+        bottom: 88px; /* sits above the button */
+        width: ${w};
+        height: ${h};
         border: none;
         border-radius: 16px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-        pointer-events: auto;
         background: transparent;
-      `;
-    };
-
-    const applyIframeMobileStyleOpen = () => {
-      iframe.style.cssText = `
-        display: block;
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
+        pointer-events: auto;
         z-index: 1000000;
-        pointer-events: auto;
-        background: transparent;
       `;
     };
 
-    applyIframeDesktopStyle();
-
-    // iframe URL
+    // Build iframe URL
     const params = new URLSearchParams({
       tenantId: config.tenantId,
       botName: config.botName,
@@ -140,43 +125,22 @@
 
     let isOpen = false;
 
-    const syncOpenUI = () => {
-      const isMobile = computeIsMobile();
-
+    const syncUI = () => {
       applyButtonStyle();
+      applyIframeStyle();
       setButtonIcon(isOpen);
 
-      if (!isOpen) {
-        iframe.style.display = 'none';
-        // show button always when closed
-        button.style.display = 'flex';
-        // restore desktop iframe base styles so next open works correctly
-        applyIframeDesktopStyle();
-        return;
-      }
-
-      // OPEN state
-      if (isMobile) {
-        applyIframeMobileStyleOpen();
-        // hide launcher button when chat open on mobile (like your previous behavior)
-        button.style.display = 'none';
-      } else {
-        // desktop floating
-        applyIframeDesktopStyle();
-        iframe.style.display = 'block';
-        iframe.style.marginBottom = '80px'; // space above fixed button
-        button.style.display = 'flex';
-      }
+      iframe.style.display = isOpen ? 'block' : 'none';
     };
 
     const openChat = () => {
       isOpen = true;
-      syncOpenUI();
+      syncUI();
     };
 
     const closeChat = () => {
       isOpen = false;
-      syncOpenUI();
+      syncUI();
     };
 
     button.onclick = () => {
@@ -184,32 +148,27 @@
       else openChat();
     };
 
-    // Close message from iframe
+    // Allow iframe to request close (optional)
     window.addEventListener('message', (event) => {
-      if (event.data === 'GEMINIBOT_CLOSE') {
-        closeChat();
-      }
+      if (event.data === 'GEMINIBOT_CLOSE') closeChat();
     });
 
-    // Responsive: recompute on resize/orientation changes
-    let resizeTimer = null;
+    // Responsive: re-apply clamp sizing on resize/orientation changes
+    let t = null;
     const onResize = () => {
-      // debounce to avoid thrashing
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        syncOpenUI();
-      }, 80);
+      clearTimeout(t);
+      t = setTimeout(syncUI, 80);
     };
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
 
     // Mount
-    container.appendChild(iframe);
     document.body.appendChild(container);
+    document.body.appendChild(iframe);
     document.body.appendChild(button);
 
-    // initial styles
-    syncOpenUI();
+    // Initial paint
+    syncUI();
   };
 
   if (document.readyState === 'loading') {
