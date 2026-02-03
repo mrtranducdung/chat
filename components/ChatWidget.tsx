@@ -545,15 +545,24 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ config, isEmbedded = false }) =
       <>
         <Toaster />
         <div 
-          className={`w-full h-full flex flex-col overflow-hidden
+          className={`w-full h-full flex flex-col overflow-hidden relative
           ${isDark ? 'bg-gray-900' : 'bg-white'}
           `}
         >
           {renderHeader()}
 
+          {/* Floating Close Button - Always visible on mobile in embedded mode */}
+          <button
+            onClick={handleClose}
+            className="sm:hidden absolute top-3 right-3 z-50 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center backdrop-blur-sm"
+            style={{ color: config.primaryColor }}
+          >
+            <XIcon className="w-6 h-6" />
+          </button>
+
           {/* Messages Area */}
           <div 
-            className={`flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-hide ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+            className={`flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-hide ${isDark ? 'bg-gray-909' : 'bg-gray-50'}`}
             ref={scrollContainerRef}
           >
             {messages.map((msg, index) => renderMessage(msg, index))}
