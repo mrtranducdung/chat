@@ -6,7 +6,7 @@ services:
     region: oregon
     plan: free
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: node servers/server.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
