@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import copy from 'copy-to-clipboard';
 import { Message, Sender, Language, Feedback, AppConfig } from '../../types';
-import { generateResponseStream, detectLanguage } from '../../services/geminiService';
+// import { generateResponseStream, detectLanguage } from '../../services/geminiService';
+import { generateResponseStream,  detectLanguage } from '../../services/mistralService';
 import { saveFeedback } from '../../services/storageService';
 
 const findLastUserQuery = (msgs: Message[], botMsgIndex: number): string => {
