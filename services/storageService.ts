@@ -423,16 +423,41 @@ export const getKnowledgeStats = async (): Promise<{
   hasDocuments: boolean;
 }> => {
   try {
-    const res = await fetch(`${API_URL}/knowledge/stats`, {
+    // ✅ Get tenantId from localStorage or URL
+    const getTenantId = () => {
+      // Try getCurrentTenantId first (admin mode)
+      const stored = getCurrentTenantId();
+      if (stored) return stored;
+      
+      // Fallback to URL params (embedded mode)
+      const params = new URLSearchParams(window.location.search);
+      return params.get('tenantId');
+    };
+
+    const tenantId = getTenantId();
+    
+    if (!tenantId) {
+      console.warn('No tenantId available for stats');
+      return { totalDocuments: 0, totalChunks: 0, hasDocuments: false };
+    }
+
+    console.log('🔑 Fetching stats for tenantId:', tenantId);
+
+    // ✅ Add tenantId to query params
+    const res = await fetch(`${API_URL}/knowledge/stats?tenantId=${tenantId}`, {
       headers: getAuthHeaders(),
       signal: AbortSignal.timeout(5000)
     });
     
     if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Stats API error:', res.status, errorText);
       return { totalDocuments: 0, totalChunks: 0, hasDocuments: false };
     }
     
     const data = await res.json();
+    
+    console.log('✅ Stats received:', data);
     
     return {
       totalDocuments: data.totalDocuments || 0,
