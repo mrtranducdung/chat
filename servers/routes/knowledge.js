@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, optionalAuth } from '../middleware/auth.js';
 import { generateId } from '../utils/helpers.js';
 import { db } from '../config/database.js';
 import { chunkText, cosineSimilarity } from '../utils/rags.js';
@@ -248,8 +248,15 @@ router.post('/search', requireAuth, async (req, res) => {
 // GET KNOWLEDGE STATS (For Widget Header)
 // ============================================
 
-router.get('/stats', requireAuth, (req, res) => {
+router.get('/stats', optionalAuth, (req, res) => {
   try {
+    // ✅ Get tenantId from JWT (admin) or query param (embedded)
+    const tenantId = req.user?.tenantId || req.query.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'tenantId required' });
+    }
+
     const stats = db.prepare(`
       SELECT 
         COUNT(DISTINCT k.id) as total_documents,
@@ -258,7 +265,7 @@ router.get('/stats', requireAuth, (req, res) => {
       FROM knowledge_items k
       LEFT JOIN document_chunks c ON c.document_id = k.id
       WHERE k.tenant_id = ?
-    `).get(req.user.tenantId);
+    `).get(tenantId);
 
     res.json({
       totalDocuments: stats.total_documents || 0,

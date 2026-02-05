@@ -13,7 +13,20 @@ export async function* generateResponseStream(
   botName: string,
   language: Language
 ): AsyncGenerator<string, RAGMetadata, undefined> {
-  const tenantId = getCurrentTenantId() || 'default';
+  
+  // ✅ Helper: Get tenantId from localStorage or URL
+  const getTenantId = () => {
+    // Try localStorage first (admin mode)
+    const stored = getCurrentTenantId();
+    if (stored) return stored;
+    
+    // Fallback to URL params (embedded mode)
+    const params = new URLSearchParams(window.location.search);
+    return params.get('tenantId') || 'default';
+  };
+
+  const tenantId = getTenantId();
+  console.log('🔑 Using tenantId:', tenantId);
 
   try {
     console.log('🚀 Attempting backend connection...');
@@ -31,7 +44,7 @@ export async function* generateResponseStream(
         history: history.filter(m => m.id !== 'welcome'),
         botName,
         language,
-        tenantId
+        tenantId // ✅ Always send tenantId
       })
     });
 
