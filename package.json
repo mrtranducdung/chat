@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node servers/server.js",
+    "start": "node server-frontend",
     "server": "node servers/server.js"
   },
   "dependencies": {
