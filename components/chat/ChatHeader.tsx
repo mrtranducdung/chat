@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { XIcon } from '../Icons';
 import { Language } from '../../types';
+import { getKnowledgeStats } from '../../services/storageService';
 
 interface ChatHeaderProps {
   botName: string;
@@ -11,7 +12,7 @@ interface ChatHeaderProps {
   setIsLangMenuOpen: (open: boolean) => void;
   setLanguage: (lang: Language) => void;
   onNewConversation: () => void;
-  onDragStart: (e: React.MouseEvent | React.TouchEvent) => void;
+  onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void;
   isDark: boolean;
 }
 
@@ -27,6 +28,31 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onDragStart,
   isDark
 }) => {
+  // ✅ Knowledge base stats state
+  const [knowledgeStats, setKnowledgeStats] = useState<{
+    totalDocuments: number;
+    totalChunks: number;
+    hasDocuments: boolean;
+  } | null>(null);
+
+  // ✅ Load knowledge stats on mount
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const stats = await getKnowledgeStats();
+        setKnowledgeStats(stats);
+      } catch (error) {
+        console.warn('Failed to load knowledge stats:', error);
+      }
+    };
+    
+    loadStats();
+    
+    // Refresh stats every 30 seconds
+    const interval = setInterval(loadStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div 
       className="p-3 sm:p-4 text-white flex justify-between items-center shadow-md relative z-10 cursor-move touch-none select-none"
@@ -39,7 +65,34 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-red-400'} border-2 border-white/20`}></div>
         </div>
         <div className="flex flex-col">
-          <h3 className="font-bold text-sm sm:text-base leading-tight">{botName}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-sm sm:text-base leading-tight">{botName}</h3>
+            
+            {/* ✅ KNOWLEDGE BASE BADGE */}
+            {knowledgeStats && knowledgeStats.hasDocuments && (
+              <div 
+                className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-1.5 py-0.5 rounded-full group/badge relative"
+                title={language === 'vi' 
+                  ? `${knowledgeStats.totalDocuments} tài liệu, ${knowledgeStats.totalChunks} đoạn văn` 
+                  : `${knowledgeStats.totalDocuments} documents, ${knowledgeStats.totalChunks} chunks`
+                }
+              >
+                <span className="text-[10px]">🧠</span>
+                <span className="text-[9px] font-bold hidden sm:inline">{knowledgeStats.totalDocuments}</span>
+                
+                {/* Tooltip on hover */}
+                <div className="hidden group-hover/badge:block absolute top-full left-0 mt-2 bg-gray-900 text-white text-[10px] px-2 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-20">
+                  <div className="space-y-0.5">
+                    <div>📚 {knowledgeStats.totalDocuments} {language === 'vi' ? 'tài liệu' : 'documents'}</div>
+                    <div>✂️ {knowledgeStats.totalChunks} {language === 'vi' ? 'đoạn văn' : 'chunks'}</div>
+                  </div>
+                  {/* Arrow */}
+                  <div className="absolute bottom-full left-3 mb-[-4px] w-2 h-2 rotate-45 bg-gray-900"></div>
+                </div>
+              </div>
+            )}
+          </div>
+          
           <span className="text-[9px] sm:text-[10px] opacity-80 uppercase tracking-wider">
             {isOnline ? (language === 'vi' ? 'Trực tuyến' : 'Online') : (language === 'vi' ? 'Ngoại tuyến' : 'Offline')}
           </span>

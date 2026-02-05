@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import copy from 'copy-to-clipboard';
 import { Message, Sender, Language, Feedback, AppConfig } from '../../types';
-// import { generateResponseStream, detectLanguage } from '../../services/geminiService';
-import { generateResponseStream,  detectLanguage } from '../../services/mistralService';
+import { generateResponseStream, detectLanguage } from '../../services/mistralService';
 import { saveFeedback } from '../../services/storageService';
 
 const findLastUserQuery = (msgs: Message[], botMsgIndex: number): string => {
@@ -238,13 +237,37 @@ export const useChatLogic = (config: AppConfig, isEmbedded: boolean) => {
       );
 
       let fullText = "";
+      let ragMetadata = { used: false, chunksCount: 0, similarity: 0 };
 
+      // ✅ Stream text chunks and capture RAG metadata at the end
       for await (const chunk of stream) {
         fullText += chunk;
         setMessages(prev => 
           prev.map(msg => msg.id === botMsgId ? { ...msg, text: fullText } : msg)
         );
       }
+      
+      // ✅ The generator's return value contains RAG metadata
+      // Note: We need to manually get the return value
+      try {
+        const finalResult = await stream.next();
+        if (finalResult.done && finalResult.value) {
+          ragMetadata = finalResult.value;
+        }
+      } catch (e) {
+        // Stream already completed, this is expected
+      }
+      
+      // ✅ Update message with RAG metadata
+      setMessages(prev => 
+        prev.map(msg => msg.id === botMsgId ? { 
+          ...msg, 
+          ragUsed: ragMetadata.used,
+          ragChunks: ragMetadata.chunksCount,
+          ragSimilarity: ragMetadata.similarity
+        } : msg)
+      );
+      
       incrementUnread();
 
     } catch (error) {

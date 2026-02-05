@@ -412,3 +412,35 @@ export const updateTenantInfo = async (updates: Partial<Tenant>): Promise<Tenant
 
   return await res.json();
 };
+
+// ============================================
+// KNOWLEDGE STATS API (NEW - FOR RAG)
+// ============================================
+
+export const getKnowledgeStats = async (): Promise<{
+  totalDocuments: number;
+  totalChunks: number;
+  hasDocuments: boolean;
+}> => {
+  try {
+    const res = await fetch(`${API_URL}/knowledge/stats`, {
+      headers: getAuthHeaders(),
+      signal: AbortSignal.timeout(5000)
+    });
+    
+    if (!res.ok) {
+      return { totalDocuments: 0, totalChunks: 0, hasDocuments: false };
+    }
+    
+    const data = await res.json();
+    
+    return {
+      totalDocuments: data.totalDocuments || 0,
+      totalChunks: data.totalChunks || 0,
+      hasDocuments: data.hasDocuments || false
+    };
+  } catch (error) {
+    console.warn('Failed to get knowledge stats:', error);
+    return { totalDocuments: 0, totalChunks: 0, hasDocuments: false };
+  }
+};

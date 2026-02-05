@@ -31,6 +31,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   onCopy,
   onRegenerate
 }) => {
+  // ✅ Helper to format similarity score
+  const formatSimilarity = (score: number): string => {
+    return (score * 100).toFixed(1) + '%';
+  };
+
   return (
     <div className={`mb-3 sm:mb-4 flex flex-col ${message.sender === Sender.USER ? 'items-end' : 'items-start'}`}>
       <div className={`flex items-end gap-1.5 sm:gap-2 max-w-[90%] sm:max-w-[85%] ${message.sender === Sender.USER ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -82,6 +87,36 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               </ReactMarkdown>
             )
           }
+          
+          {/* ✅ RAG INDICATOR - Shows when bot used knowledge base */}
+          {message.sender === Sender.BOT && message.ragUsed && message.text !== "" && (
+            <div 
+              className={`mt-2 pt-2 border-t ${
+                isDark ? 'border-gray-700' : 'border-gray-200'
+              } flex items-center gap-2 text-[10px] group/rag relative`}
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="text-sm" role="img" aria-label="brain">🧠</span>
+                <span className={`font-medium ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+                  {language === 'vi' ? 'Từ kiến thức nội bộ' : 'From knowledge base'}
+                </span>
+              </span>
+              
+              {/* Tooltip with details */}
+              <div className={`
+                hidden group-hover/rag:block absolute bottom-full left-0 mb-2 
+                px-2 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-10
+                ${isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-800 text-white'}
+              `}>
+                <div className="text-[9px] space-y-0.5">
+                  <div>📊 {language === 'vi' ? 'Độ liên quan' : 'Relevance'}: <span className="font-bold text-green-400">{formatSimilarity(message.ragSimilarity || 0)}</span></div>
+                  <div>📚 {language === 'vi' ? 'Nguồn' : 'Sources'}: <span className="font-bold">{message.ragChunks || 0} {language === 'vi' ? 'đoạn' : 'chunks'}</span></div>
+                </div>
+                {/* Arrow */}
+                <div className={`absolute top-full left-3 -mt-1 w-2 h-2 rotate-45 ${isDark ? 'bg-gray-700' : 'bg-gray-800'}`}></div>
+              </div>
+            </div>
+          )}
           
           {/* Timestamp on hover */}
           {message.text && (

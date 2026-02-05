@@ -1,4 +1,4 @@
-// types.ts - Enhanced with Multi-Tenant Support
+// types.ts - Enhanced with Multi-Tenant Support + RAG
 
 // ============================================
 // TENANT & USER TYPES (NEW)
@@ -60,9 +60,10 @@ export interface KnowledgeItem {
   fileType?: string;
   fileSizeBytes?: number;
   status?: 'active' | 'processing' | 'archived';
+  chunkCount?: number; // ✅ NEW: Number of chunks for RAG
 }
 
-// Chat Message - NOW WITH TENANT ID
+// Chat Message - NOW WITH TENANT ID + RAG METADATA
 export interface Message {
   id: string;
   tenantId?: string; // NEW: Optional for backward compatibility
@@ -71,6 +72,11 @@ export interface Message {
   timestamp: number;
   feedback?: Feedback;
   language?: Language;
+  
+  // ✅ RAG METADATA (NEW)
+  ragUsed?: boolean; // Was knowledge base used?
+  ragChunks?: number; // How many chunks were used
+  ragSimilarity?: number; // Max similarity score (0-1)
 }
 
 // Feedback Log - NOW WITH TENANT ID
@@ -87,6 +93,21 @@ export interface FeedbackAnalysisResult {
   sentimentScore: number;
   summary: string;
   commonIssues: string[];
+}
+
+// ✅ RAG METADATA INTERFACE (NEW)
+export interface RAGMetadata {
+  used: boolean;
+  chunksCount: number;
+  similarity: number;
+}
+
+// ✅ KNOWLEDGE STATS INTERFACE (NEW)
+export interface KnowledgeStats {
+  totalDocuments: number;
+  totalChunks: number;
+  storageUsedMb: number;
+  lastUpdated: number;
 }
 
 // ============================================
@@ -204,14 +225,22 @@ export const UI_STRINGS = {
     poweredBy: 'Hỗ trợ bởi Gemini AI',
     typing: 'Đang soạn...',
     online: 'Trực tuyến',
-    offline: 'Ngoại tuyến'
+    offline: 'Ngoại tuyến',
+    // ✅ RAG strings (NEW)
+    ragActive: 'Sử dụng kiến thức nội bộ',
+    ragInactive: 'Kiến thức chung',
+    documentsAvailable: 'tài liệu',
   },
   en: {
     placeholder: 'Type a message...',
     poweredBy: 'Powered by Gemini AI',
     typing: 'Typing...',
     online: 'Online',
-    offline: 'Offline'
+    offline: 'Offline',
+    // ✅ RAG strings (NEW)
+    ragActive: 'Using knowledge base',
+    ragInactive: 'General knowledge',
+    documentsAvailable: 'documents',
   }
 };
 
