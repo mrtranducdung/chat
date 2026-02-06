@@ -3,9 +3,11 @@ import { UploadIcon, TrashIcon, SettingsIcon, CodeIcon, MagicIcon, BarChartIcon,
 import { KnowledgeItem, AppConfig, FeedbackLog, FeedbackAnalysisResult, DEFAULT_CONFIG } from '../types';
 import { getKnowledgeBase, saveKnowledgeItem, deleteKnowledgeItem, getConfig, saveConfig, getFeedbackLogs, analyzeFeedbackTrends } from '../services/storageService';
 import { analyzeDocument } from '../services/geminiService';
+import EmbedCodeModal from './EmbedCodeModal'; // ✅ THÊM DÒNG NÀY
 
 const AdminPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'knowledge' | 'settings' | 'install' | 'feedback'>('knowledge');
+  const [showEmbedModal, setShowEmbedModal] = useState(false); // ✅ THÊM DÒNG NÀY
   const [knowledgeList, setKnowledgeList] = useState<KnowledgeItem[]>([]);
   const [feedbackLogs, setFeedbackLogs] = useState<FeedbackLog[]>([]);
   const [config, setConfig] = useState<AppConfig>(getConfig());
@@ -214,6 +216,7 @@ const AdminPanel: React.FC = () => {
   );
 
   return (
+    <>
     <div className="w-full max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[800px]">
       
       {/* Sidebar */}
@@ -265,17 +268,29 @@ const AdminPanel: React.FC = () => {
                             <h1 className="text-2xl font-bold text-gray-900">Knowledge Base</h1>
                             <p className="text-gray-500 text-sm mt-1">Quản lý tài liệu nguồn để AI học tập.</p>
                         </div>
-                        <button 
-                            onClick={() => setShowUpload(!showUpload)} 
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm ${
-                                showUpload 
-                                ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
-                                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-200 hover:-translate-y-0.5'
-                            }`}
-                        >
-                            {showUpload ? <XIcon className="w-5 h-5"/> : <PlusIcon className="w-5 h-5"/>}
-                            {showUpload ? 'Hủy bỏ' : 'Thêm tài liệu'}
-                        </button>
+                        
+                        {/* ✅ 2 BUTTONS */}
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => setShowEmbedModal(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm bg-purple-600 text-white hover:bg-purple-700"
+                            >
+                                <CodeIcon className="w-5 h-5"/>
+                                Embed Code
+                            </button>
+                            
+                            <button 
+                                onClick={() => setShowUpload(!showUpload)} 
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm ${
+                                    showUpload 
+                                    ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
+                                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-200 hover:-translate-y-0.5'
+                                }`}
+                            >
+                                {showUpload ? <XIcon className="w-5 h-5"/> : <PlusIcon className="w-5 h-5"/>}
+                                {showUpload ? 'Hủy bỏ' : 'Thêm tài liệu'}
+                            </button>
+                        </div>
                     </div>
 
                     {showUpload && (
@@ -598,6 +613,13 @@ const AdminPanel: React.FC = () => {
         )}
       </div>
     </div>
+    
+    {/* ✅ MODAL */}
+    <EmbedCodeModal 
+      isOpen={showEmbedModal} 
+      onClose={() => setShowEmbedModal(false)} 
+    />
+    </>
   );
 };
 
