@@ -226,12 +226,39 @@ const AdminPanel: React.FC = () => {
   );
 
   // ── Render ───────────────────────────────────────────────────────────────────
+  const navItems: { id: TabId; label: string; short: string; icon: string }[] = [
+    { id: 'dashboard',  label: 'Dashboard (BI)',      short: 'Dashboard', icon: '📊' },
+    { id: 'connectors', label: 'Data Connectors',     short: 'Connectors', icon: '🔌' },
+    { id: 'knowledge',  label: 'Dữ liệu (RAG)',       short: 'Knowledge', icon: '📁' },
+    { id: 'feedback',   label: 'Phản hồi & Đánh giá', short: 'Feedback',  icon: '💬' },
+    { id: 'settings',   label: 'Cấu hình & Gợi ý',   short: 'Settings',  icon: '⚙️' },
+    { id: 'install',    label: 'Hướng dẫn cài đặt',   short: 'Install',   icon: '📖' },
+  ];
+
   return (
     <>
-    <div className="w-full max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[860px]">
+    <div className="w-full max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col md:flex-row md:h-[860px]">
 
-      {/* ── Sidebar ── */}
-      <div className="w-full md:w-64 bg-white border-r border-gray-100 flex flex-col p-5 z-10 shrink-0">
+      {/* ── Mobile top nav ── */}
+      <div className="md:hidden bg-white border-b border-gray-100 shrink-0">
+        <div className="px-4 pt-4 pb-2">
+          <h2 className="text-lg font-bold text-gray-900">Gemini<span className="text-blue-600">Admin</span></h2>
+        </div>
+        <div className="flex overflow-x-auto scrollbar-hide px-2 pb-2 gap-1">
+          {navItems.map(item => (
+            <button key={item.id} onClick={() => setActiveTab(item.id)}
+              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl shrink-0 transition-all ${
+                activeTab === item.id ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-100'
+              }`}>
+              <span className="text-base">{item.icon}</span>
+              <span className="text-[10px] font-medium whitespace-nowrap">{item.short}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Desktop Sidebar ── */}
+      <div className="hidden md:flex w-64 bg-white border-r border-gray-100 flex-col p-5 z-10 shrink-0">
         <div className="mb-8 px-2">
           <h2 className="text-xl font-bold text-gray-900">Gemini<span className="text-blue-600">Admin</span></h2>
           <p className="text-xs text-gray-400 mt-1">Enterprise Knowledge Hub</p>
@@ -262,10 +289,10 @@ const AdminPanel: React.FC = () => {
 
         {/* ════════════════════ DASHBOARD TAB ════════════════════ */}
         {activeTab === 'dashboard' && (
-          <div className="p-8">
-            <div className="flex justify-between items-center mb-6">
+          <div className="p-4 sm:p-6 md:p-8">
+            <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Business Intelligence Dashboard</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">Business Intelligence Dashboard</h1>
                 <p className="text-gray-400 text-sm mt-1">Real-time Sales Analytics</p>
               </div>
               <button onClick={() => fetchDashboard()}
@@ -387,9 +414,9 @@ const AdminPanel: React.FC = () => {
 
         {/* ════════════════════ DATA CONNECTORS TAB ════════════════════ */}
         {activeTab === 'connectors' && (
-          <div className="p-8 max-w-3xl mx-auto">
+          <div className="p-4 sm:p-6 md:p-8 max-w-3xl mx-auto">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Data Connectors</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Data Connectors</h1>
               <p className="text-gray-400 text-sm mt-1">Kết nối bot với các nguồn dữ liệu bên ngoài.</p>
             </div>
 
@@ -477,24 +504,24 @@ const AdminPanel: React.FC = () => {
 
         {/* ════════════════════ KNOWLEDGE TAB ════════════════════ */}
         {activeTab === 'knowledge' && (
-          <div className="p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             {isLoadingData ? (
               <div className="flex h-full items-center justify-center flex-col gap-4 h-96">
                 <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"/>
               </div>
             ) : (
               <>
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-wrap justify-between items-start gap-3 mb-6 md:mb-8">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Knowledge Base</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">Knowledge Base</h1>
                     <p className="text-gray-500 text-sm mt-1">Quản lý tài liệu nguồn để AI học tập.</p>
                   </div>
-                  <div className="flex gap-3">
-                    <button onClick={() => setShowEmbedModal(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium bg-purple-600 text-white hover:bg-purple-700 shadow-sm">
-                      <CodeIcon className="w-5 h-5"/> Embed Code
+                  <div className="flex gap-2 flex-wrap">
+                    <button onClick={() => setShowEmbedModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium bg-purple-600 text-white hover:bg-purple-700 shadow-sm text-sm">
+                      <CodeIcon className="w-4 h-4"/> Embed Code
                     </button>
-                    <button onClick={() => setShowUpload(!showUpload)} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium shadow-sm ${showUpload ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-                      {showUpload ? <XIcon className="w-5 h-5"/> : <PlusIcon className="w-5 h-5"/>}
+                    <button onClick={() => setShowUpload(!showUpload)} className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium shadow-sm text-sm ${showUpload ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                      {showUpload ? <XIcon className="w-4 h-4"/> : <PlusIcon className="w-4 h-4"/>}
                       {showUpload ? 'Hủy bỏ' : 'Thêm tài liệu'}
                     </button>
                   </div>
@@ -568,14 +595,14 @@ const AdminPanel: React.FC = () => {
 
         {/* ════════════════════ FEEDBACK TAB ════════════════════ */}
         {activeTab === 'feedback' && (
-          <div className="p-8">
-            <div className="flex justify-between items-end mb-8">
+          <div className="p-4 sm:p-6 md:p-8">
+            <div className="flex flex-wrap justify-between items-start gap-3 mb-6 md:mb-8">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Feedback Center</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">Feedback Center</h1>
                 <p className="text-gray-500 text-sm mt-1">Phân tích cảm xúc và phản hồi người dùng.</p>
               </div>
               <button onClick={handleRunFeedbackAnalysis} disabled={isAnalyzingFeedback}
-                className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-70">
+                className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-70 text-sm">
                 {isAnalyzingFeedback ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/> AI đang đọc...</> : <><MagicIcon className="w-5 h-5"/> Phân tích bằng AI</>}
               </button>
             </div>
@@ -606,7 +633,8 @@ const AdminPanel: React.FC = () => {
             )}
 
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <table className="w-full text-left">
+              <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[600px]">
                 <thead className="text-xs font-bold text-gray-400 uppercase bg-gray-50 border-b">
                   <tr>
                     <th className="px-6 py-3 w-16">Vote</th>
@@ -632,15 +660,16 @@ const AdminPanel: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}
 
         {/* ════════════════════ SETTINGS TAB ════════════════════ */}
         {activeTab === 'settings' && (
-          <div className="p-8 max-w-3xl mx-auto">
-            <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 space-y-8">
-              <h2 className="text-2xl font-bold text-gray-900">Cấu hình Widget</h2>
+          <div className="p-4 sm:p-6 md:p-8 max-w-3xl mx-auto">
+            <div className="bg-white p-4 sm:p-6 md:p-8 rounded-3xl shadow-xl border border-gray-100 space-y-8">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900">Cấu hình Widget</h2>
               <div className="space-y-4">
                 <h3 className="font-semibold text-gray-800 border-b pb-2">Thông tin cơ bản</h3>
                 <div>
@@ -673,8 +702,8 @@ const AdminPanel: React.FC = () => {
 
         {/* ════════════════════ INSTALL TAB ════════════════════ */}
         {activeTab === 'install' && (
-          <div className="p-8 max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Hướng dẫn Cài đặt</h1>
+          <div className="p-4 sm:p-6 md:p-8 max-w-3xl mx-auto">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">Hướng dẫn Cài đặt</h1>
             <div className="bg-gray-900 text-gray-300 p-8 rounded-3xl font-mono text-sm shadow-2xl border border-gray-800">
               <div className="space-y-4">
                 <h4 className="text-white font-bold flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full inline-block"/> Server Status</h4>

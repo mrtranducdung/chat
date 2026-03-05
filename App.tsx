@@ -20,26 +20,25 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen relative">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm relative z-40">
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-2 shadow-sm relative z-40">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">G</div>
-          <h1 className="text-xl font-bold text-gray-800">Gemini<span className="text-blue-600">Bot</span> Platform</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-800">Gemini<span className="text-blue-600">Bot</span></h1>
         </div>
-        
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500 hidden sm:inline">Chế độ xem:</span>
+
+        <div className="flex items-center gap-2 sm:gap-4">
           <div className="bg-gray-100 p-1 rounded-lg flex">
             <button
               onClick={() => setIsAdminMode(true)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${isAdminMode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${isAdminMode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              Admin Dashboard
+              Admin
             </button>
             <button
               onClick={() => setIsAdminMode(false)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${!isAdminMode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${!isAdminMode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              User Website
+              Website
             </button>
           </div>
           <button
@@ -47,14 +46,14 @@ const App: React.FC = () => {
               logout();
               setIsLoggedIn(false);
             }}
-            className="text-sm text-red-600 hover:text-red-700 font-medium"
+            className="text-xs sm:text-sm text-red-600 hover:text-red-700 font-medium"
           >
             Đăng xuất
           </button>
         </div>
       </div>
 
-      <main className="p-6 md:p-10 max-w-7xl mx-auto">
+      <main className="p-3 sm:p-6 md:p-10 max-w-7xl mx-auto">
         {isAdminMode ? (
           <div className="animate-fade-in">
             <AdminPanel />
