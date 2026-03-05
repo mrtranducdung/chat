@@ -1,23 +1,21 @@
-// types.ts - Enhanced with Multi-Tenant Support + RAG
+// types.ts - Enhanced with Multi-Tenant Support + RAG + Sales Chart
 
 // ============================================
-// TENANT & USER TYPES (NEW)
+// TENANT & USER TYPES
 // ============================================
 
 export interface Tenant {
   id: string;
   name: string;
-  slug: string; // URL-friendly: "acme-corp"
+  slug: string;
   plan: 'free' | 'pro' | 'enterprise';
   status: 'active' | 'suspended' | 'cancelled';
-  
-  // Limits
+
   monthlyMessageLimit: number;
   monthlyMessagesUsed: number;
   storageLimitMb: number;
   storageUsedMb: number;
-  
-  // Timestamps
+
   createdAt: number;
   trialEndsAt?: number;
   subscriptionEndsAt?: number;
@@ -25,11 +23,10 @@ export interface Tenant {
 
 export interface User {
   id: string;
-  tenantId: string; // Links to tenant
+  tenantId: string;
   email: string;
   fullName: string;
   role: 'owner' | 'admin' | 'viewer';
-  
   emailVerified: boolean;
   lastLoginAt?: number;
   createdAt: number;
@@ -42,16 +39,15 @@ export interface AuthToken {
 }
 
 // ============================================
-// EXISTING TYPES (Enhanced with tenantId)
+// CORE TYPES
 // ============================================
 
 export type Language = 'vi' | 'en';
 export type Feedback = 'up' | 'down';
 
-// Knowledge Base Item - NOW WITH TENANT ID
 export interface KnowledgeItem {
   id: string;
-  tenantId: string; // NEW: Which tenant owns this
+  tenantId: string;
   title: string;
   content: string;
   dateAdded: number;
@@ -60,29 +56,36 @@ export interface KnowledgeItem {
   fileType?: string;
   fileSizeBytes?: number;
   status?: 'active' | 'processing' | 'archived';
-  chunkCount?: number; // ✅ NEW: Number of chunks for RAG
+  chunkCount?: number;
 }
 
-// Chat Message - NOW WITH TENANT ID + RAG METADATA
 export interface Message {
   id: string;
-  tenantId?: string; // NEW: Optional for backward compatibility
+  tenantId?: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: number;
   feedback?: Feedback;
   language?: Language;
-  
-  // ✅ RAG METADATA (NEW)
-  ragUsed?: boolean; // Was knowledge base used?
-  ragChunks?: number; // How many chunks were used
-  ragSimilarity?: number; // Max similarity score (0-1)
+
+  // RAG metadata
+  ragUsed?: boolean;
+  ragChunks?: number;
+  ragSimilarity?: number;
+
+  // 🆕 Sales chart
+  chartData?: {
+    chartType: 'line' | 'bar' | 'pie' | 'table';
+    data: Record<string, any>[];
+    xKey: string;
+    yKey: string;
+    title: string;
+  };
 }
 
-// Feedback Log - NOW WITH TENANT ID
 export interface FeedbackLog {
   id: string;
-  tenantId?: string; // NEW
+  tenantId?: string;
   text: string;
   feedback: Feedback;
   userQuery?: string;
@@ -95,14 +98,12 @@ export interface FeedbackAnalysisResult {
   commonIssues: string[];
 }
 
-// ✅ RAG METADATA INTERFACE (NEW)
 export interface RAGMetadata {
   used: boolean;
   chunksCount: number;
   similarity: number;
 }
 
-// ✅ KNOWLEDGE STATS INTERFACE (NEW)
 export interface KnowledgeStats {
   totalDocuments: number;
   totalChunks: number;
@@ -111,38 +112,41 @@ export interface KnowledgeStats {
 }
 
 // ============================================
-// APP CONFIG (Enhanced for Multi-Tenant)
+// APP CONFIG
 // ============================================
 
 export interface AppConfig {
-  tenantId?: string; // NEW: Links config to tenant
-  
+  tenantId?: string;
+
   // Bot Identity
   botName: string;
   welcomeMessage: string;
   systemPrompt: string;
-  
+
   // Appearance
   primaryColor: string;
   theme?: 'light' | 'dark';
   position?: 'bottom-right' | 'bottom-left';
-  
+
   // Features
   enableSound?: boolean;
   enableFeedback?: boolean;
   suggestedQuestions?: string[];
-  
+
   // Language
   defaultLanguage?: Language;
   supportedLanguages?: Language[];
-  
-  // Advanced (for pro/enterprise)
+
+  // Advanced
   temperature?: number;
   maxTokens?: number;
   model?: string;
-  
-  // Admin (deprecated - moved to User table)
-  adminPassword?: string; // Keep for backward compatibility
+
+  // Admin (deprecated)
+  adminPassword?: string;
+
+  // 🆕 Sales service
+  salesServiceUrl?: string; // e.g. "http://localhost:4000"
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -159,26 +163,27 @@ export const DEFAULT_CONFIG: AppConfig = {
   supportedLanguages: ['vi', 'en'],
   temperature: 0.7,
   maxTokens: 1000,
-  model: 'gemini-flash-latest'
+  model: 'gemini-flash-latest',
+  salesServiceUrl: '',
 };
 
 // ============================================
-// CHAT WIDGET PROPS (NEW)
+// CHAT WIDGET PROPS
 // ============================================
 
 export interface ChatWidgetProps {
   config: AppConfig;
-  isEmbedded?: boolean; // When true, widget is in iframe/embed mode
+  isEmbedded?: boolean;
 }
 
 // ============================================
-// API KEY TYPE (NEW)
+// API KEY TYPE
 // ============================================
 
 export interface ApiKey {
   id: string;
   tenantId: string;
-  keyPrefix: string; // "gbot_live_abc..." (first 15 chars for display)
+  keyPrefix: string;
   name: string;
   scopes: string[];
   status: 'active' | 'revoked';
@@ -188,12 +193,12 @@ export interface ApiKey {
 }
 
 // ============================================
-// USAGE TRACKING (NEW)
+// USAGE TRACKING
 // ============================================
 
 export interface UsageStats {
   tenantId: string;
-  period: string; // "2024-01"
+  period: string;
   messagesCount: number;
   storageUsedMb: number;
   apiCallsCount: number;
@@ -201,7 +206,7 @@ export interface UsageStats {
 }
 
 // ============================================
-// ANALYTICS TYPES (Enhanced)
+// ANALYTICS TYPES
 // ============================================
 
 export interface ConversationStats {
@@ -209,14 +214,14 @@ export interface ConversationStats {
   totalConversations: number;
   totalMessages: number;
   avgMessagesPerConversation: number;
-  satisfactionRate: number; // 0-100
+  satisfactionRate: number;
   topQuestions: { question: string; count: number }[];
   peakHours: { hour: number; count: number }[];
   languageDistribution: { language: Language; percentage: number }[];
 }
 
 // ============================================
-// UI STRINGS (Existing - No Change)
+// UI STRINGS
 // ============================================
 
 export const UI_STRINGS = {
@@ -226,7 +231,6 @@ export const UI_STRINGS = {
     typing: 'Đang soạn...',
     online: 'Trực tuyến',
     offline: 'Ngoại tuyến',
-    // ✅ RAG strings (NEW)
     ragActive: 'Sử dụng kiến thức nội bộ',
     ragInactive: 'Kiến thức chung',
     documentsAvailable: 'tài liệu',
@@ -237,7 +241,6 @@ export const UI_STRINGS = {
     typing: 'Typing...',
     online: 'Online',
     offline: 'Offline',
-    // ✅ RAG strings (NEW)
     ragActive: 'Using knowledge base',
     ragInactive: 'General knowledge',
     documentsAvailable: 'documents',
@@ -245,7 +248,7 @@ export const UI_STRINGS = {
 };
 
 // ============================================
-// SENDER ENUM (Existing - No Change)
+// SENDER ENUM
 // ============================================
 
 export enum Sender {
@@ -254,7 +257,7 @@ export enum Sender {
 }
 
 // ============================================
-// PLAN LIMITS (NEW)
+// PLAN LIMITS
 // ============================================
 
 export const PLAN_LIMITS = {
@@ -264,28 +267,28 @@ export const PLAN_LIMITS = {
     maxUsers: 1,
     apiAccess: false,
     customBranding: false,
-    advancedAnalytics: false
+    advancedAnalytics: false,
   },
   pro: {
     monthlyMessages: 10000,
-    storageMb: 1024, // 1GB
+    storageMb: 1024,
     maxUsers: 5,
     apiAccess: true,
     customBranding: true,
-    advancedAnalytics: true
+    advancedAnalytics: true,
   },
   enterprise: {
-    monthlyMessages: -1, // Unlimited
-    storageMb: -1, // Unlimited
-    maxUsers: -1, // Unlimited
+    monthlyMessages: -1,
+    storageMb: -1,
+    maxUsers: -1,
     apiAccess: true,
     customBranding: true,
-    advancedAnalytics: true
+    advancedAnalytics: true,
   }
 };
 
 // ============================================
-// ERROR TYPES (NEW)
+// ERROR TYPES
 // ============================================
 
 export class TenantLimitError extends Error {
