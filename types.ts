@@ -42,7 +42,7 @@ export interface AuthToken {
 // CORE TYPES
 // ============================================
 
-export type Language = 'vi' | 'en';
+export type Language = 'vi' | 'en' | 'ja';
 export type Feedback = 'up' | 'down';
 
 export interface KnowledgeItem {
@@ -160,7 +160,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   enableFeedback: true,
   suggestedQuestions: [],
   defaultLanguage: 'vi',
-  supportedLanguages: ['vi', 'en'],
+  supportedLanguages: ['vi', 'en', 'ja'],
   temperature: 0.7,
   maxTokens: 1000,
   model: 'gemini-flash-latest',
@@ -244,6 +244,16 @@ export const UI_STRINGS = {
     ragActive: 'Using knowledge base',
     ragInactive: 'General knowledge',
     documentsAvailable: 'documents',
+  },
+  ja: {
+    placeholder: 'メッセージを入力...',
+    poweredBy: 'Gemini AI 搭載',
+    typing: '入力中...',
+    online: 'オンライン',
+    offline: 'オフライン',
+    ragActive: 'ナレッジベースを使用中',
+    ragInactive: '一般知識',
+    documentsAvailable: '件のドキュメント',
   }
 };
 

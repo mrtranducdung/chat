@@ -72,8 +72,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             {knowledgeStats && knowledgeStats.hasDocuments && (
               <div 
                 className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-1.5 py-0.5 rounded-full group/badge relative"
-                title={language === 'vi' 
-                  ? `${knowledgeStats.totalDocuments} tài liệu, ${knowledgeStats.totalChunks} đoạn văn` 
+                title={language === 'vi'
+                  ? `${knowledgeStats.totalDocuments} tài liệu, ${knowledgeStats.totalChunks} đoạn văn`
+                  : language === 'ja'
+                  ? `${knowledgeStats.totalDocuments} ドキュメント, ${knowledgeStats.totalChunks} チャンク`
                   : `${knowledgeStats.totalDocuments} documents, ${knowledgeStats.totalChunks} chunks`
                 }
               >
@@ -83,8 +85,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 {/* Tooltip on hover */}
                 <div className="hidden group-hover/badge:block absolute top-full left-0 mt-2 bg-gray-900 text-white text-[10px] px-2 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-20">
                   <div className="space-y-0.5">
-                    <div>📚 {knowledgeStats.totalDocuments} {language === 'vi' ? 'tài liệu' : 'documents'}</div>
-                    <div>✂️ {knowledgeStats.totalChunks} {language === 'vi' ? 'đoạn văn' : 'chunks'}</div>
+                    <div>📚 {knowledgeStats.totalDocuments} {language === 'vi' ? 'tài liệu' : language === 'ja' ? 'ドキュメント' : 'documents'}</div>
+                    <div>✂️ {knowledgeStats.totalChunks} {language === 'vi' ? 'đoạn văn' : language === 'ja' ? 'チャンク' : 'chunks'}</div>
                   </div>
                   {/* Arrow */}
                   <div className="absolute bottom-full left-3 mb-[-4px] w-2 h-2 rotate-45 bg-gray-900"></div>
@@ -94,7 +96,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           </div>
           
           <span className="text-[9px] sm:text-[10px] opacity-80 uppercase tracking-wider">
-            {isOnline ? (language === 'vi' ? 'Trực tuyến' : 'Online') : (language === 'vi' ? 'Ngoại tuyến' : 'Offline')}
+            {isOnline
+              ? (language === 'vi' ? 'Trực tuyến' : language === 'ja' ? 'オンライン' : 'Online')
+              : (language === 'vi' ? 'Ngoại tuyến' : language === 'ja' ? 'オフライン' : 'Offline')}
           </span>
         </div>
       </div>
@@ -104,7 +108,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         <button 
           onClick={onNewConversation}
           className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition-all text-sm"
-          title={language === 'vi' ? 'Cuộc trò chuyện mới' : 'New conversation'}
+          title={language === 'vi' ? 'Cuộc trò chuyện mới' : language === 'ja' ? '新しい会話' : 'New conversation'}
         >
           🔄
         </button>
@@ -115,8 +119,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
             className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-[10px] sm:text-xs px-1.5 sm:px-2 py-1 rounded transition-colors text-white font-medium"
           >
-            {language === 'vi' ? '🇻🇳' : '🇺🇸'}
-            <span className="hidden sm:inline">{language === 'vi' ? ' VI' : ' EN'}</span>
+            {language === 'vi' ? '🇻🇳' : language === 'ja' ? '🇯🇵' : '🇺🇸'}
+            <span className="hidden sm:inline">{language === 'vi' ? ' VI' : language === 'ja' ? ' JA' : ' EN'}</span>
           </button>
           
           {isLangMenuOpen && (
@@ -129,11 +133,17 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 >
                   <span>🇻🇳</span> Tiếng Việt
                 </button>
-                <button 
+                <button
                   onClick={() => { setLanguage('en'); setIsLangMenuOpen(false); }}
                   className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center gap-2 ${language === 'en' ? 'text-blue-600 font-bold bg-blue-50' : ''}`}
                 >
                   <span>🇺🇸</span> English
+                </button>
+                <button
+                  onClick={() => { setLanguage('ja'); setIsLangMenuOpen(false); }}
+                  className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center gap-2 ${language === 'ja' ? 'text-blue-600 font-bold bg-blue-50' : ''}`}
+                >
+                  <span>🇯🇵</span> 日本語
                 </button>
               </div>
             </>
@@ -144,7 +154,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       {/* Offline indicator */}
       {!isOnline && (
         <div className="absolute top-full left-0 right-0 bg-red-500 text-white text-[10px] sm:text-xs py-1 px-4 text-center pointer-events-none">
-          {language === 'vi' ? '⚠️ Không có kết nối' : '⚠️ No connection'}
+          {language === 'vi' ? '⚠️ Không có kết nối' : language === 'ja' ? '⚠️ 接続がありません' : '⚠️ No connection'}
         </div>
       )}
     </div>

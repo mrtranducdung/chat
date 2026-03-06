@@ -112,8 +112,8 @@ export const useChatLogic = (config: AppConfig, isEmbedded: boolean) => {
   }, [messages, config.tenantId, isEmbedded]);
 
   useEffect(() => {
-    const onOnline = () => { setIsOnline(true); toast.success(language === 'vi' ? 'Đã kết nối lại' : 'Back online', { duration: 2000 }); };
-    const onOffline = () => { setIsOnline(false); toast.error(language === 'vi' ? 'Mất kết nối internet' : 'You are offline', { duration: 3000 }); };
+    const onOnline = () => { setIsOnline(true); toast.success(language === 'vi' ? 'Đã kết nối lại' : language === 'ja' ? '再接続しました' : 'Back online', { duration: 2000 }); };
+    const onOffline = () => { setIsOnline(false); toast.error(language === 'vi' ? 'Mất kết nối internet' : language === 'ja' ? 'インターネット接続が切れました' : 'You are offline', { duration: 3000 }); };
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
     return () => { window.removeEventListener('online', onOnline); window.removeEventListener('offline', onOffline); };
@@ -138,8 +138,8 @@ export const useChatLogic = (config: AppConfig, isEmbedded: boolean) => {
     saveFeedback(messageId, text, type, userQuery);
     toast.success(
       type === 'up'
-        ? (language === 'vi' ? 'Cảm ơn phản hồi!' : 'Thanks for your feedback!')
-        : (language === 'vi' ? 'Chúng tôi sẽ cải thiện' : "We'll improve"),
+        ? (language === 'vi' ? 'Cảm ơn phản hồi!' : language === 'ja' ? 'フィードバックありがとう！' : 'Thanks for your feedback!')
+        : (language === 'vi' ? 'Chúng tôi sẽ cải thiện' : language === 'ja' ? '改善に努めます' : "We'll improve"),
       { duration: 2000 }
     );
   };
@@ -147,8 +147,8 @@ export const useChatLogic = (config: AppConfig, isEmbedded: boolean) => {
   const copyToClipboard = (text: string) => {
     const ok = copy(text);
     ok
-      ? toast.success(language === 'vi' ? 'Đã sao chép!' : 'Copied to clipboard!', { duration: 2000, position: 'top-center' })
-      : toast.error(language === 'vi' ? 'Không thể sao chép' : 'Failed to copy', { duration: 2000 });
+      ? toast.success(language === 'vi' ? 'Đã sao chép!' : language === 'ja' ? 'コピーしました！' : 'Copied to clipboard!', { duration: 2000, position: 'top-center' })
+      : toast.error(language === 'vi' ? 'Không thể sao chép' : language === 'ja' ? 'コピー失敗' : 'Failed to copy', { duration: 2000 });
   };
 
   const startNewConversation = () => {
@@ -157,7 +157,7 @@ export const useChatLogic = (config: AppConfig, isEmbedded: boolean) => {
     setConversationId(Date.now().toString());
     setError(null);
     setRetryMessage(null);
-    toast.success(language === 'vi' ? 'Bắt đầu cuộc trò chuyện mới' : 'Started new conversation', { duration: 2000 });
+    toast.success(language === 'vi' ? 'Bắt đầu cuộc trò chuyện mới' : language === 'ja' ? '新しい会話を開始しました' : 'Started new conversation', { duration: 2000 });
   };
 
   const regenerateResponse = async (messageId: string) => {
@@ -166,7 +166,7 @@ export const useChatLogic = (config: AppConfig, isEmbedded: boolean) => {
     const userQuery = findLastUserQuery(messages, msgIndex);
     if (!userQuery) return;
     setMessages(prev => prev.slice(0, msgIndex));
-    toast.loading(language === 'vi' ? 'Đang tạo lại...' : 'Regenerating...', { duration: 1000 });
+    toast.loading(language === 'vi' ? 'Đang tạo lại...' : language === 'ja' ? '再生成中...' : 'Regenerating...', { duration: 1000 });
     setTimeout(() => handleSendMessage(userQuery), 500);
   };
 
@@ -180,7 +180,7 @@ export const useChatLogic = (config: AppConfig, isEmbedded: boolean) => {
     if (!textToSend || isTyping) return;
 
     if (!isOnline) {
-      toast.error(language === 'vi' ? 'Không có kết nối internet' : 'No internet connection', { duration: 3000 });
+      toast.error(language === 'vi' ? 'Không có kết nối internet' : language === 'ja' ? 'インターネット接続がありません' : 'No internet connection', { duration: 3000 });
       return;
     }
 
@@ -257,13 +257,13 @@ export const useChatLogic = (config: AppConfig, isEmbedded: boolean) => {
 
     } catch (err) {
       console.error(err);
-      setError(language === 'vi' ? 'Không thể kết nối' : 'Connection failed');
+      setError(language === 'vi' ? 'Không thể kết nối' : language === 'ja' ? '接続に失敗しました' : 'Connection failed');
       setRetryMessage(textToSend);
       setMessages(prev => prev.map(msg => msg.id === botMsgId ? {
         ...msg,
-        text: language === 'vi' ? '❌ Không thể kết nối. Vui lòng thử lại.' : '❌ Connection failed. Please try again.',
+        text: language === 'vi' ? '❌ Không thể kết nối. Vui lòng thử lại.' : language === 'ja' ? '❌ 接続に失敗しました。再試行してください。' : '❌ Connection failed. Please try again.',
       } : msg));
-      toast.error(language === 'vi' ? 'Lỗi kết nối' : 'Connection error', { duration: 3000 });
+      toast.error(language === 'vi' ? 'Lỗi kết nối' : language === 'ja' ? '接続エラー' : 'Connection error', { duration: 3000 });
     } finally {
       setIsTyping(false);
     }

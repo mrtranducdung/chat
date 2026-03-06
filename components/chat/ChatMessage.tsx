@@ -104,13 +104,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               <span className="flex items-center gap-1.5">
                 <span className="text-sm" role="img" aria-label="brain">🧠</span>
                 <span className={`font-medium ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
-                  {language === 'vi' ? 'Từ kiến thức nội bộ' : 'From knowledge base'}
+                  {language === 'vi' ? 'Từ kiến thức nội bộ' : language === 'ja' ? 'ナレッジベースより' : 'From knowledge base'}
                 </span>
               </span>
               <div className={`hidden group-hover/rag:block absolute bottom-full left-0 mb-2 px-2 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-10 ${isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-800 text-white'}`}>
                 <div className="text-[9px] space-y-0.5">
-                  <div>📊 {language === 'vi' ? 'Độ liên quan' : 'Relevance'}: <span className="font-bold text-green-400">{formatSimilarity(message.ragSimilarity || 0)}</span></div>
-                  <div>📚 {language === 'vi' ? 'Nguồn' : 'Sources'}: <span className="font-bold">{message.ragChunks || 0} {language === 'vi' ? 'đoạn' : 'chunks'}</span></div>
+                  <div>📊 {language === 'vi' ? 'Độ liên quan' : language === 'ja' ? '関連度' : 'Relevance'}: <span className="font-bold text-green-400">{formatSimilarity(message.ragSimilarity || 0)}</span></div>
+                  <div>📚 {language === 'vi' ? 'Nguồn' : language === 'ja' ? 'ソース' : 'Sources'}: <span className="font-bold">{message.ragChunks || 0} {language === 'vi' ? 'đoạn' : language === 'ja' ? 'チャンク' : 'chunks'}</span></div>
                 </div>
                 <div className={`absolute top-full left-3 -mt-1 w-2 h-2 rotate-45 ${isDark ? 'bg-gray-700' : 'bg-gray-800'}`}></div>
               </div>
@@ -120,7 +120,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           {/* Timestamp on hover */}
           {message.text && (
             <div className="hidden sm:block absolute -bottom-5 left-0 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              {new Date(message.timestamp).toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+              {new Date(message.timestamp).toLocaleTimeString(language === 'vi' ? 'vi-VN' : language === 'ja' ? 'ja-JP' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
             </div>
           )}
         </div>
@@ -129,16 +129,16 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
       {/* Action buttons */}
       {enableFeedback && message.sender === Sender.BOT && message.id !== 'welcome' && message.text !== "" && (
         <div className={`flex gap-1 mt-1 ml-8 sm:ml-10 transition-opacity duration-300 ${isTyping && isLastMessage ? 'opacity-0' : 'opacity-100'}`}>
-          <button onClick={() => onFeedback(message.id, message.text, 'up')} className={`p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors ${message.feedback === 'up' ? 'text-green-600' : 'text-gray-400'}`} title={language === 'vi' ? 'Hữu ích' : 'Helpful'}>
+          <button onClick={() => onFeedback(message.id, message.text, 'up')} className={`p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors ${message.feedback === 'up' ? 'text-green-600' : 'text-gray-400'}`} title={language === 'vi' ? 'Hữu ích' : language === 'ja' ? '役に立った' : 'Helpful'}>
             <ThumbsUpIcon className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
           </button>
-          <button onClick={() => onFeedback(message.id, message.text, 'down')} className={`p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors ${message.feedback === 'down' ? 'text-red-600' : 'text-gray-400'}`} title={language === 'vi' ? 'Không hữu ích' : 'Not helpful'}>
+          <button onClick={() => onFeedback(message.id, message.text, 'down')} className={`p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors ${message.feedback === 'down' ? 'text-red-600' : 'text-gray-400'}`} title={language === 'vi' ? 'Không hữu ích' : language === 'ja' ? '役に立たなかった' : 'Not helpful'}>
             <ThumbsDownIcon className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
           </button>
-          <button onClick={() => onCopy(message.text)} className="p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors text-gray-400 hover:text-blue-600 text-sm" title={language === 'vi' ? 'Sao chép' : 'Copy'}>
+          <button onClick={() => onCopy(message.text)} className="p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors text-gray-400 hover:text-blue-600 text-sm" title={language === 'vi' ? 'Sao chép' : language === 'ja' ? 'コピー' : 'Copy'}>
             📋
           </button>
-          <button onClick={() => onRegenerate(message.id)} className="p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors text-gray-400 hover:text-purple-600 text-sm" title={language === 'vi' ? 'Tạo lại câu trả lời' : 'Regenerate'}>
+          <button onClick={() => onRegenerate(message.id)} className="p-1.5 sm:p-1 hover:bg-gray-100/10 rounded transition-colors text-gray-400 hover:text-purple-600 text-sm" title={language === 'vi' ? 'Tạo lại câu trả lời' : language === 'ja' ? '再生成' : 'Regenerate'}>
             🔄
           </button>
         </div>

@@ -77,7 +77,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               onClick={onRetry}
               className="text-[10px] sm:text-xs text-red-600 hover:text-red-700 font-medium px-2 sm:px-3 py-1 bg-red-100 rounded"
             >
-              {language === 'vi' ? 'Thử lại' : 'Retry'}
+              {language === 'vi' ? 'Thử lại' : language === 'ja' ? '再試行' : 'Retry'}
             </button>
           </div>
         </div>
