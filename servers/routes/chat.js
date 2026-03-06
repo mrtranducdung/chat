@@ -92,6 +92,15 @@ ${contextText}
 Nếu câu hỏi liên quan đến tài liệu trên, hãy sử dụng thông tin đó để trả lời.` : 'Không có tài liệu nào.'}
 
 Nếu không tìm thấy thông tin trong tài liệu, trả lời dựa trên kiến thức chung và nói rõ là bạn không chắc chắn.`
+      : language === 'ja'
+      ? `あなたは${botName || 'AIアシスタント'}です。日本語で簡潔かつ丁寧に回答してください。
+
+${contextText ? `ドキュメントのコンテキスト:
+${contextText}
+
+質問が上記のドキュメントに関連している場合は、その情報を使って回答してください。` : 'ドキュメントはありません。'}
+
+ドキュメントに情報が見つからない場合は、一般的な知識に基づいて回答し、不確かな点は明示してください。`
       : `You are ${botName || 'an AI assistant'}. Answer in English, concisely and professionally.
 
 ${contextText ? `DOCUMENT CONTEXT:
