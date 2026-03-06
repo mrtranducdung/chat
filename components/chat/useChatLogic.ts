@@ -196,11 +196,13 @@ export const useChatLogic = (config: AppConfig, isEmbedded: boolean) => {
 
     try {
       // ── Detect language ──────────────────────────────────────────────────
+      // Only auto-switch if the text contains clear script evidence (vi/ja chars).
+      // Never override user's manual selection with a plain-English fallback.
       let usedLanguage = language;
       if (textToSend.length > 2) {
         try {
           const detected = await detectLanguage(textToSend);
-          if (detected !== language) { setLanguage(detected); usedLanguage = detected; }
+          if (detected !== 'en' && detected !== language) { setLanguage(detected); usedLanguage = detected; }
         } catch { console.warn('Skipping language detection'); }
       }
 

@@ -133,7 +133,10 @@ export const analyzeDocument = async (text: string): Promise<{ title: string }> 
 export const detectLanguage = async (text: string): Promise<Language> => {
   try {
     const vietnamesePattern = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
-    return vietnamesePattern.test(text) ? 'vi' : 'en';
+    if (vietnamesePattern.test(text)) return 'vi';
+    const japanesePattern = /[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf\u3400-\u4dbf]/;
+    if (japanesePattern.test(text)) return 'ja';
+    return 'en';
   } catch (error) {
     console.error("Language detection error:", error);
     return 'vi';
