@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useI18n } from '../services/i18n';
 import {
   UploadIcon, TrashIcon, SettingsIcon, CodeIcon, MagicIcon, BarChartIcon,
   ThumbsUpIcon, ThumbsDownIcon, SearchIcon, PlusIcon, FileIcon, CheckCircleIcon, XIcon
@@ -58,6 +59,7 @@ const StatCard = ({ label, value, sub, color, icon }: any) => (
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const AdminPanel: React.FC = () => {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [knowledgeList, setKnowledgeList] = useState<KnowledgeItem[]>([]);
@@ -227,12 +229,12 @@ const AdminPanel: React.FC = () => {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   const navItems: { id: TabId; label: string; short: string; icon: string }[] = [
-    { id: 'dashboard',  label: 'Dashboard (BI)',      short: 'Dashboard', icon: '📊' },
-    { id: 'connectors', label: 'Data Connectors',     short: 'Connectors', icon: '🔌' },
-    { id: 'knowledge',  label: 'Dữ liệu (RAG)',       short: 'Knowledge', icon: '📁' },
-    { id: 'feedback',   label: 'Phản hồi & Đánh giá', short: 'Feedback',  icon: '💬' },
-    { id: 'settings',   label: 'Cấu hình & Gợi ý',   short: 'Settings',  icon: '⚙️' },
-    { id: 'install',    label: 'Hướng dẫn cài đặt',   short: 'Install',   icon: '📖' },
+    { id: 'dashboard',  label: t.dashboard,      short: t.shortDashboard, icon: '📊' },
+    { id: 'connectors', label: t.dataConnectors, short: t.shortConnectors, icon: '🔌' },
+    { id: 'knowledge',  label: t.knowledgeBase,  short: t.shortKnowledge, icon: '📁' },
+    { id: 'feedback',   label: t.feedback,       short: t.shortFeedback,  icon: '💬' },
+    { id: 'settings',   label: t.settings,       short: t.shortSettings,  icon: '⚙️' },
+    { id: 'install',    label: t.installGuide,   short: t.shortInstall,   icon: '📖' },
   ];
 
   return (
@@ -264,21 +266,21 @@ const AdminPanel: React.FC = () => {
           <p className="text-xs text-gray-400 mt-1">Enterprise Knowledge Hub</p>
         </div>
         <nav className="space-y-1 flex-1">
-          <SidebarItem id="dashboard"   label="Dashboard (BI)"       icon="📊" />
-          <SidebarItem id="connectors"  label="Data Connectors"      icon="🔌" />
-          <SidebarItem id="knowledge"   label="Dữ liệu (RAG)"        icon="📁" />
-          <SidebarItem id="feedback"    label="Phản hồi & Đánh giá"  icon="💬" />
-          <SidebarItem id="settings"    label="Cấu hình & Gợi ý"     icon="⚙️" />
+          <SidebarItem id="dashboard"   label={t.dashboard}      icon="📊" />
+          <SidebarItem id="connectors"  label={t.dataConnectors} icon="🔌" />
+          <SidebarItem id="knowledge"   label={t.knowledgeBase}  icon="📁" />
+          <SidebarItem id="feedback"    label={t.feedback}       icon="💬" />
+          <SidebarItem id="settings"    label={t.settings}       icon="⚙️" />
           <div className="pt-3 mt-3 border-t border-gray-100">
-            <SidebarItem id="install"   label="Hướng dẫn cài đặt"    icon="📖" />
+            <SidebarItem id="install"   label={t.installGuide}   icon="📖" />
           </div>
         </nav>
         <div className="mt-auto bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm text-green-500 text-sm">✅</div>
             <div>
-              <p className="text-[10px] font-bold text-gray-700 uppercase">System Status</p>
-              <p className="text-[10px] text-green-600">All systems operational</p>
+              <p className="text-[10px] font-bold text-gray-700 uppercase">{t.systemStatus}</p>
+              <p className="text-[10px] text-green-600">{t.allSystemsOk}</p>
             </div>
           </div>
         </div>
@@ -292,19 +294,19 @@ const AdminPanel: React.FC = () => {
           <div className="p-4 sm:p-6 md:p-8">
             <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900">Business Intelligence Dashboard</h1>
-                <p className="text-gray-400 text-sm mt-1">Real-time Sales Analytics</p>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">{t.biDashboard}</h1>
+                <p className="text-gray-400 text-sm mt-1">{t.realtimeSales}</p>
               </div>
               <button onClick={() => fetchDashboard()}
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 shadow-sm transition-all">
-                🔄 Refresh
+                {t.refresh}
               </button>
             </div>
 
             {dashboardLoading && (
               <div className="flex flex-col items-center justify-center h-96 gap-4">
                 <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"/>
-                <p className="text-gray-400 animate-pulse">Đang tải dữ liệu...</p>
+                <p className="text-gray-400 animate-pulse">{t.loading}</p>
               </div>
             )}
 
@@ -314,7 +316,7 @@ const AdminPanel: React.FC = () => {
                 <p className="text-gray-600 font-medium">{dashboardError}</p>
                 <button onClick={() => setActiveTab('connectors')}
                   className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700">
-                  Cấu hình Data Connector
+                  {t.configureConnector}
                 </button>
               </div>
             )}
@@ -323,18 +325,18 @@ const AdminPanel: React.FC = () => {
               <>
                 {/* Stat cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <StatCard label="Total Revenue" value={fmtVND(salesData.totalRevenue)} sub="Đơn hoàn thành" color="#3b82f6" icon="💰" />
-                  <StatCard label="Total Orders" value={salesData.totalOrders.toLocaleString()} sub="Completed" color="#10b981" icon="📦" />
-                  <StatCard label="Top Product" value={salesData.topProducts[0]?.name?.split(' ').slice(0, 2).join(' ')} sub={fmtVND(salesData.topProducts[0]?.revenue)} color="#f59e0b" icon="🏆" />
-                  <StatCard label="Top Region" value={salesData.revenueByRegion[0]?.region} sub={fmtVND(salesData.revenueByRegion[0]?.revenue)} color="#8b5cf6" icon="📍" />
+                  <StatCard label={t.totalRevenue} value={fmtVND(salesData.totalRevenue)} sub={t.completedOrders} color="#3b82f6" icon="💰" />
+                  <StatCard label={t.totalOrders} value={salesData.totalOrders.toLocaleString()} sub={t.completed} color="#10b981" icon="📦" />
+                  <StatCard label={t.topProduct} value={salesData.topProducts[0]?.name?.split(' ').slice(0, 2).join(' ')} sub={fmtVND(salesData.topProducts[0]?.revenue)} color="#f59e0b" icon="🏆" />
+                  <StatCard label={t.topRegion} value={salesData.revenueByRegion[0]?.region} sub={fmtVND(salesData.revenueByRegion[0]?.revenue)} color="#8b5cf6" icon="📍" />
                 </div>
 
                 {/* Row 1: Area chart + Pie chart */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                   {/* Revenue over time */}
                   <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <h3 className="font-bold text-gray-800 mb-1">Revenue vs Trend</h3>
-                    <p className="text-xs text-gray-400 mb-4">Doanh thu theo tháng</p>
+                    <h3 className="font-bold text-gray-800 mb-1">{t.revenueVsTrend}</h3>
+                    <p className="text-xs text-gray-400 mb-4">{t.revenueByMonth}</p>
                     <ResponsiveContainer width="100%" height={220}>
                       <AreaChart data={salesData.revenueByMonth}>
                         <defs>
@@ -354,8 +356,8 @@ const AdminPanel: React.FC = () => {
 
                   {/* Revenue by region pie */}
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <h3 className="font-bold text-gray-800 mb-1">Revenue by Region</h3>
-                    <p className="text-xs text-gray-400 mb-4">Theo khu vực</p>
+                    <h3 className="font-bold text-gray-800 mb-1">{t.revenueByRegion}</h3>
+                    <p className="text-xs text-gray-400 mb-4">{t.byRegion}</p>
                     <ResponsiveContainer width="100%" height={220}>
                       <PieChart>
                         <Pie data={salesData.revenueByRegion} dataKey="revenue" nameKey="region"
@@ -375,8 +377,8 @@ const AdminPanel: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Top products */}
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <h3 className="font-bold text-gray-800 mb-1">Top Products</h3>
-                    <p className="text-xs text-gray-400 mb-4">Sản phẩm bán chạy nhất</p>
+                    <h3 className="font-bold text-gray-800 mb-1">{t.topProducts}</h3>
+                    <p className="text-xs text-gray-400 mb-4">{t.bestSelling}</p>
                     <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={salesData.topProducts} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false}/>
@@ -392,8 +394,8 @@ const AdminPanel: React.FC = () => {
 
                   {/* Staff performance */}
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <h3 className="font-bold text-gray-800 mb-1">Staff Performance</h3>
-                    <p className="text-xs text-gray-400 mb-4">Doanh thu theo nhân viên</p>
+                    <h3 className="font-bold text-gray-800 mb-1">{t.staffPerformance}</h3>
+                    <p className="text-xs text-gray-400 mb-4">{t.revenueByStaff}</p>
                     <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={salesData.revenueByStaff}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
@@ -416,8 +418,8 @@ const AdminPanel: React.FC = () => {
         {activeTab === 'connectors' && (
           <div className="p-4 sm:p-6 md:p-8 max-w-3xl mx-auto">
             <div className="mb-8">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Data Connectors</h1>
-              <p className="text-gray-400 text-sm mt-1">Kết nối bot với các nguồn dữ liệu bên ngoài.</p>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">{t.dataConnectorsTitle}</h1>
+              <p className="text-gray-400 text-sm mt-1">{t.dataConnectorsDesc}</p>
             </div>
 
             {/* Sales Service Connector */}
@@ -425,19 +427,19 @@ const AdminPanel: React.FC = () => {
               <div className="flex items-center gap-4 p-6 border-b border-gray-100">
                 <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-2xl shrink-0">📊</div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-gray-900">Sales Service</h3>
-                  <p className="text-sm text-gray-400">REST API server chứa dữ liệu bán hàng của khách hàng</p>
+                  <h3 className="font-bold text-gray-900">{t.salesService}</h3>
+                  <p className="text-sm text-gray-400">{t.salesServiceDesc}</p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                   config.salesServiceUrl ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
                 }`}>
-                  {config.salesServiceUrl ? '🟢 Connected' : '⚪ Not configured'}
+                  {config.salesServiceUrl ? t.connected : t.notConfigured}
                 </span>
               </div>
 
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 block mb-2">Server URL</label>
+                  <label className="text-sm font-semibold text-gray-700 block mb-2">{t.serverUrl}</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -450,19 +452,19 @@ const AdminPanel: React.FC = () => {
                       className="px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors whitespace-nowrap shadow-sm">
                       {salesTestStatus === 'testing'
                         ? <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"/>
-                        : salesTestStatus === 'ok' ? '✅ Connected'
-                        : salesTestStatus === 'error' ? '❌ Failed'
-                        : 'Test'}
+                        : salesTestStatus === 'ok' ? t.testOk
+                        : salesTestStatus === 'error' ? t.testFailed
+                        : t.test}
                     </button>
                   </div>
                   <p className="text-xs text-gray-400 mt-2">
-                    Bot tự động gọi <code className="bg-gray-100 px-1 rounded">/api/sales/summary</code> khi user hỏi về doanh thu, sản phẩm, v.v.
+                    {t.endpointsNote}
                   </p>
                 </div>
 
                 {/* Schema info */}
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Expected Endpoints</p>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">{t.expectedEndpoints}</p>
                   <div className="space-y-1.5 text-xs font-mono">
                     {[
                       ['GET', '/api/sales/health', 'Health check'],
@@ -479,7 +481,7 @@ const AdminPanel: React.FC = () => {
 
                 <button onClick={handleSaveConnector} disabled={!connectorUrl}
                   className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50">
-                  Lưu & Kết nối
+                  {t.saveConnect}
                 </button>
               </div>
             </div>
@@ -496,7 +498,7 @@ const AdminPanel: React.FC = () => {
                   <h3 className="font-bold text-gray-700">{c.name}</h3>
                   <p className="text-sm text-gray-400">{c.desc}</p>
                 </div>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-600">Coming soon</span>
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-600">{t.comingSoon}</span>
               </div>
             ))}
           </div>
@@ -513,43 +515,43 @@ const AdminPanel: React.FC = () => {
               <>
                 <div className="flex flex-wrap justify-between items-start gap-3 mb-6 md:mb-8">
                   <div>
-                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">Knowledge Base</h1>
-                    <p className="text-gray-500 text-sm mt-1">Quản lý tài liệu nguồn để AI học tập.</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">{t.knowledgeTitle}</h1>
+                    <p className="text-gray-500 text-sm mt-1">{t.knowledgeDesc}</p>
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <button onClick={() => setShowEmbedModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium bg-purple-600 text-white hover:bg-purple-700 shadow-sm text-sm">
-                      <CodeIcon className="w-4 h-4"/> Embed Code
+                      <CodeIcon className="w-4 h-4"/> {t.embedCode}
                     </button>
                     <button onClick={() => setShowUpload(!showUpload)} className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium shadow-sm text-sm ${showUpload ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
                       {showUpload ? <XIcon className="w-4 h-4"/> : <PlusIcon className="w-4 h-4"/>}
-                      {showUpload ? 'Hủy bỏ' : 'Thêm tài liệu'}
+                      {showUpload ? t.cancel : t.addDoc}
                     </button>
                   </div>
                 </div>
 
                 {showUpload && (
                   <div className="mb-8 bg-white border border-blue-100 rounded-2xl p-6 shadow-xl shadow-blue-50/50">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2"><UploadIcon className="w-5 h-5 text-blue-500"/> Upload Tài Liệu Mới</h3>
+                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2"><UploadIcon className="w-5 h-5 text-blue-500"/> {t.uploadDoc}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="border-2 border-dashed border-blue-200 rounded-xl bg-blue-50/30 flex flex-col items-center justify-center p-6 text-center hover:bg-blue-50 transition-colors relative min-h-[200px]">
                         <UploadIcon className="w-10 h-10 text-blue-300 mb-3"/>
-                        <span className="font-semibold text-gray-700">Kéo thả hoặc chọn file</span>
-                        <span className="text-xs text-gray-400 mt-1">PDF, TXT, MD, JSON</span>
+                        <span className="font-semibold text-gray-700">{t.dragDrop}</span>
+                        <span className="text-xs text-gray-400 mt-1">{t.fileTypes}</span>
                         <input type="file" accept=".txt,.md,.json,.pdf" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer"/>
                         {isProcessing && <div className="absolute inset-0 bg-white/90 flex items-center justify-center rounded-xl"><div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"/></div>}
                       </div>
                       <div className="flex flex-col gap-4">
                         <div>
-                          <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Tiêu đề</label>
+                          <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">{t.titleLabel}</label>
                           <div className="flex gap-2">
-                            <input type="text" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Chính sách bảo hành..."/>
+                            <input type="text" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder={t.titlePlaceholder}/>
                             <button onClick={handleAnalyze} disabled={isAnalyzing || !uploadText} className="px-3 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 disabled:opacity-50">
                               {isAnalyzing ? <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"/> : <MagicIcon className="w-5 h-5"/>}
                             </button>
                           </div>
                         </div>
-                        <textarea value={uploadText} onChange={e => setUploadText(e.target.value)} className="w-full h-24 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Nội dung..."/>
-                        <button onClick={handleAddToKnowledge} disabled={isProcessing || !uploadText.trim()} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50">Lưu & Embed Vector</button>
+                        <textarea value={uploadText} onChange={e => setUploadText(e.target.value)} className="w-full h-24 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder={t.contentPlaceholder}/>
+                        <button onClick={handleAddToKnowledge} disabled={isProcessing || !uploadText.trim()} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50">{t.saveEmbed}</button>
                       </div>
                     </div>
                   </div>
@@ -557,18 +559,18 @@ const AdminPanel: React.FC = () => {
 
                 <div className="flex gap-4 mb-6">
                   <div className="bg-white px-5 py-3 rounded-xl border border-gray-100 shadow-sm">
-                    <span className="text-xs text-gray-400 font-bold uppercase block">Files</span>
+                    <span className="text-xs text-gray-400 font-bold uppercase block">{t.files}</span>
                     <span className="text-xl font-bold">{knowledgeList.length}</span>
                   </div>
                   <div className="flex-1 relative">
                     <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"/>
-                    <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Tìm kiếm..." className="w-full h-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"/>
+                    <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder={t.search} className="w-full h-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"/>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                   {filteredKnowledge.length === 0 ? (
-                    <div className="p-12 text-center text-gray-400">Không tìm thấy tài liệu</div>
+                    <div className="p-12 text-center text-gray-400">{t.noDocuments}</div>
                   ) : (
                     <div className="divide-y divide-gray-100">
                       {filteredKnowledge.map(item => (
@@ -598,28 +600,28 @@ const AdminPanel: React.FC = () => {
           <div className="p-4 sm:p-6 md:p-8">
             <div className="flex flex-wrap justify-between items-start gap-3 mb-6 md:mb-8">
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900">Feedback Center</h1>
-                <p className="text-gray-500 text-sm mt-1">Phân tích cảm xúc và phản hồi người dùng.</p>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">{t.feedbackTitle}</h1>
+                <p className="text-gray-500 text-sm mt-1">{t.feedbackDesc}</p>
               </div>
               <button onClick={handleRunFeedbackAnalysis} disabled={isAnalyzingFeedback}
                 className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-70 text-sm">
-                {isAnalyzingFeedback ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/> AI đang đọc...</> : <><MagicIcon className="w-5 h-5"/> Phân tích bằng AI</>}
+                {isAnalyzingFeedback ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/> {t.aiReading}</> : <><MagicIcon className="w-5 h-5"/> {t.analyzeAI}</>}
               </button>
             </div>
 
             {analysisResult && (
               <div className="mb-8 bg-white rounded-2xl p-8 shadow-xl border border-indigo-100 animate-fade-in">
-                <h4 className="font-bold text-indigo-900 mb-6 flex items-center gap-2 text-lg"><MagicIcon className="w-6 h-6 text-indigo-500"/> Báo cáo Chất lượng</h4>
+                <h4 className="font-bold text-indigo-900 mb-6 flex items-center gap-2 text-lg"><MagicIcon className="w-6 h-6 text-indigo-500"/> {t.qualityReport}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div className="border-r border-gray-100 pr-4">
-                    <p className="text-xs font-bold text-gray-400 uppercase mb-2">Chỉ số hài lòng</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-2">{t.satisfactionScore}</p>
                     <span className={`text-6xl font-black ${analysisResult.sentimentScore > 75 ? 'text-green-500' : analysisResult.sentimentScore > 50 ? 'text-yellow-500' : 'text-red-500'}`}>{analysisResult.sentimentScore}</span>
                     <span className="text-gray-400"> / 100</span>
-                    <p className="text-sm text-gray-400 mt-2">{feedbackLogs.length} lượt đánh giá</p>
+                    <p className="text-sm text-gray-400 mt-2">{feedbackLogs.length} {t.ratings}</p>
                   </div>
                   <div className="col-span-2 pl-4">
                     <div className="bg-indigo-50 rounded-xl p-4 mb-4">
-                      <p className="text-xs font-bold text-indigo-400 uppercase mb-1">Tóm tắt</p>
+                      <p className="text-xs font-bold text-indigo-400 uppercase mb-1">{t.summary}</p>
                       <p className="text-gray-700 italic">"{analysisResult.summary}"</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -637,15 +639,15 @@ const AdminPanel: React.FC = () => {
               <table className="w-full text-left min-w-[600px]">
                 <thead className="text-xs font-bold text-gray-400 uppercase bg-gray-50 border-b">
                   <tr>
-                    <th className="px-6 py-3 w-16">Vote</th>
-                    <th className="px-6 py-3">User Asked</th>
-                    <th className="px-6 py-3">Bot Replied</th>
-                    <th className="px-6 py-3 w-32 text-right">Time</th>
+                    <th className="px-6 py-3 w-16">{t.vote}</th>
+                    <th className="px-6 py-3">{t.userAsked}</th>
+                    <th className="px-6 py-3">{t.botReplied}</th>
+                    <th className="px-6 py-3 w-32 text-right">{t.time}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {feedbackLogs.length === 0 ? (
-                    <tr><td colSpan={4} className="p-12 text-center text-gray-400 italic">Chưa có dữ liệu.</td></tr>
+                    <tr><td colSpan={4} className="p-12 text-center text-gray-400 italic">{t.noFeedback}</td></tr>
                   ) : feedbackLogs.slice(0, 50).map(log => (
                     <tr key={log.timestamp} className="hover:bg-blue-50/30 group">
                       <td className="px-6 py-4">
@@ -669,22 +671,22 @@ const AdminPanel: React.FC = () => {
         {activeTab === 'settings' && (
           <div className="p-4 sm:p-6 md:p-8 max-w-3xl mx-auto">
             <div className="bg-white p-4 sm:p-6 md:p-8 rounded-3xl shadow-xl border border-gray-100 space-y-8">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900">Cấu hình Widget</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900">{t.settingsTitle}</h2>
               <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800 border-b pb-2">Thông tin cơ bản</h3>
+                <h3 className="font-semibold text-gray-800 border-b pb-2">{t.basicInfo}</h3>
                 <div>
-                  <label className="text-sm font-medium text-gray-600 block mb-1">Tên Bot</label>
+                  <label className="text-sm font-medium text-gray-600 block mb-1">{t.botName}</label>
                   <input type="text" value={localConfig.botName} onChange={e => setLocalConfig({...localConfig, botName: e.target.value})} className="w-full border rounded-lg px-3 py-2"/>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600 block mb-1">Lời chào</label>
+                  <label className="text-sm font-medium text-gray-600 block mb-1">{t.greeting}</label>
                   <input type="text" value={localConfig.welcomeMessage} onChange={e => setLocalConfig({...localConfig, welcomeMessage: e.target.value})} className="w-full border rounded-lg px-3 py-2"/>
                 </div>
               </div>
               <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800 border-b pb-2">Gợi ý câu hỏi</h3>
+                <h3 className="font-semibold text-gray-800 border-b pb-2">{t.suggestedQuestions}</h3>
                 <div className="flex gap-2">
-                  <input type="text" value={newQuestion} onChange={e => setNewQuestion(e.target.value)} placeholder="Nhập câu hỏi gợi ý..." className="flex-1 border rounded-lg px-3 py-2" onKeyPress={e => e.key === 'Enter' && handleAddQuestion()}/>
+                  <input type="text" value={newQuestion} onChange={e => setNewQuestion(e.target.value)} placeholder={t.questionPlaceholder} className="flex-1 border rounded-lg px-3 py-2" onKeyPress={e => e.key === 'Enter' && handleAddQuestion()}/>
                   <button onClick={handleAddQuestion} className="bg-blue-600 text-white px-4 py-2 rounded-lg"><PlusIcon className="w-5 h-5"/></button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -695,7 +697,7 @@ const AdminPanel: React.FC = () => {
                   ))}
                 </div>
               </div>
-              <button onClick={handleSaveConfig} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition-all shadow-lg">Lưu cấu hình & Áp dụng</button>
+              <button onClick={handleSaveConfig} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition-all shadow-lg">{t.saveSettings}</button>
             </div>
           </div>
         )}
@@ -703,15 +705,15 @@ const AdminPanel: React.FC = () => {
         {/* ════════════════════ INSTALL TAB ════════════════════ */}
         {activeTab === 'install' && (
           <div className="p-4 sm:p-6 md:p-8 max-w-3xl mx-auto">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">Hướng dẫn Cài đặt</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">{t.installTitle}</h1>
             <div className="bg-gray-900 text-gray-300 p-8 rounded-3xl font-mono text-sm shadow-2xl border border-gray-800">
               <div className="space-y-4">
-                <h4 className="text-white font-bold flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full inline-block"/> Server Status</h4>
+                <h4 className="text-white font-bold flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full inline-block"/> {t.serverStatusLabel}</h4>
                 <div className="bg-black/30 p-4 rounded-xl border border-white/10">
                   <p>API: <span className="text-blue-400">http://localhost:3001/api</span></p>
-                  <p>Status: <span className="text-green-400">Online</span></p>
+                  <p>Status: <span className="text-green-400">{t.online}</span></p>
                 </div>
-                <p className="text-xs opacity-50">Multi-tenant: mỗi tenant có dữ liệu riêng biệt.</p>
+                <p className="text-xs opacity-50">{t.multitenantNote}</p>
               </div>
             </div>
           </div>

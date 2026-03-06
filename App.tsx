@@ -2,23 +2,35 @@ import React, { useState, useEffect } from 'react';
 import ChatWidget from './components/ChatWidget';
 import AdminPanel from './components/AdminPanel';
 import { getConfig, isAuthenticated, logout } from './services/storageService';
+import { LangContext, Lang, useI18n, translations } from './services/i18n';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://geminibot-backend.onrender.com/api';
+
+const LANG_FLAGS: Record<Lang, string> = { vi: '🇻🇳', en: '🇺🇸', ja: '🇯🇵' };
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [isAdminMode, setIsAdminMode] = useState(true);
+  const [lang, setLangState] = useState<Lang>(() => (localStorage.getItem('lang') as Lang) || 'vi');
   const config = getConfig();
+
+  const setLang = (l: Lang) => { setLangState(l); localStorage.setItem('lang', l); };
+  const t = translations[lang];
 
   useEffect(() => {
     setIsLoggedIn(isAuthenticated());
   }, []);
 
   if (!isLoggedIn) {
-    return <AuthPage onAuthSuccess={() => setIsLoggedIn(true)} />;
+    return (
+      <LangContext.Provider value={{ lang, setLang }}>
+        <AuthPage onAuthSuccess={() => setIsLoggedIn(true)} />
+      </LangContext.Provider>
+    );
   }
 
   return (
+    <LangContext.Provider value={{ lang, setLang }}>
     <div className="min-h-screen relative">
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-2 shadow-sm relative z-40">
         <div className="flex items-center gap-2">
@@ -26,29 +38,30 @@ const App: React.FC = () => {
           <h1 className="text-lg sm:text-xl font-bold text-gray-800">Gemini<span className="text-blue-600">Bot</span></h1>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Language selector */}
+          <div className="flex bg-gray-100 p-1 rounded-lg gap-0.5">
+            {(['vi', 'en', 'ja'] as Lang[]).map(l => (
+              <button key={l} onClick={() => setLang(l)}
+                className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${lang === l ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
+                {LANG_FLAGS[l]} {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           <div className="bg-gray-100 p-1 rounded-lg flex">
-            <button
-              onClick={() => setIsAdminMode(true)}
-              className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${isAdminMode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Admin
+            <button onClick={() => setIsAdminMode(true)}
+              className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${isAdminMode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              {t.adminMode}
             </button>
-            <button
-              onClick={() => setIsAdminMode(false)}
-              className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${!isAdminMode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Website
+            <button onClick={() => setIsAdminMode(false)}
+              className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${!isAdminMode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              {t.websiteMode}
             </button>
           </div>
-          <button
-            onClick={() => {
-              logout();
-              setIsLoggedIn(false);
-            }}
-            className="text-xs sm:text-sm text-red-600 hover:text-red-700 font-medium"
-          >
-            Đăng xuất
+          <button onClick={() => { logout(); setIsLoggedIn(false); }}
+            className="text-xs sm:text-sm text-red-600 hover:text-red-700 font-medium">
+            {t.logout}
           </button>
         </div>
       </div>
@@ -61,11 +74,8 @@ const App: React.FC = () => {
         ) : (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 animate-fade-in">
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-2xl">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Đây là Website Khách Hàng</h2>
-              <p className="text-gray-600 text-lg leading-relaxed">
-                Trang này mô phỏng website đích mà chatbot sẽ được gắn vào.
-                Hãy nhìn xuống góc phải màn hình để trải nghiệm Chatbot.
-              </p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{t.customerWebsiteTitle}</h2>
+              <p className="text-gray-600 text-lg leading-relaxed">{t.customerWebsiteDesc}</p>
             </div>
           </div>
         )}
@@ -73,6 +83,7 @@ const App: React.FC = () => {
 
       <ChatWidget config={config} />
     </div>
+    </LangContext.Provider>
   );
 };
 
@@ -86,6 +97,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   const [tenantSlug, setTenantSlug] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { t, lang, setLang } = useI18n();
 
   const handleLogin = async () => {
     setError('');
@@ -123,7 +135,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
 
     try {
       if (!email || !password || !fullName || !tenantName || !tenantSlug) {
-        throw new Error('All fields are required');
+        throw new Error(t.allFieldsRequired);
       }
 
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -160,15 +172,25 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+        <div className="flex justify-end mb-2">
+          <div className="flex bg-gray-100 p-1 rounded-lg gap-0.5">
+            {(['vi', 'en', 'ja'] as Lang[]).map(l => (
+              <button key={l} onClick={() => setLang(l)}
+                className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${lang === l ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
+                {LANG_FLAGS[l]} {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white text-2xl font-bold">G</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {isLogin ? 'Welcome Back' : 'Get Started'}
+            {isLogin ? t.welcomeBack : t.getStarted}
           </h1>
           <p className="text-gray-500 mt-2">
-            {isLogin ? 'Sign in to GeminiBot Platform' : 'Create your account'}
+            {isLogin ? t.signInSubtitle : t.createAccountSubtitle}
           </p>
         </div>
 
@@ -182,7 +204,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           {!isLogin && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.fullName}</label>
                 <input
                   type="text"
                   value={fullName}
@@ -193,7 +215,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.companyName}</label>
                 <input
                   type="text"
                   value={tenantName}
@@ -208,7 +230,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Company Slug (URL)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.companySlug}</label>
                 <input
                   type="text"
                   value={tenantSlug}
@@ -222,7 +244,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.email}</label>
             <input
               type="email"
               value={email}
@@ -233,7 +255,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.password}</label>
             <input
               type="password"
               value={password}
@@ -249,7 +271,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+            {loading ? t.processing : (isLogin ? t.signIn : t.createAccount)}
           </button>
         </div>
 
@@ -261,7 +283,7 @@ const AuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
             }}
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+            {isLogin ? t.noAccount : t.hasAccount}
           </button>
         </div>
       </div>
