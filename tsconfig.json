@@ -25,5 +25,10 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "newbot",
+    "homepage",
+    "node_modules"
+  ]
 }

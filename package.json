@@ -14,13 +14,17 @@
     "@google/genai": "^1.38.0",
     "@google/generative-ai": "^0.24.1",
     "@mistralai/mistralai": "^1.13.0",
+    "@tailwindcss/vite": "^4.2.1",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^9.2.2",
+    "clsx": "^2.1.1",
     "copy-to-clipboard": "^3.3.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.22.1",
     "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.577.0",
+    "motion": "^12.35.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-hot-toast": "^2.6.0",
@@ -28,7 +32,8 @@
     "react-router-dom": "^6.30.3",
     "react-syntax-highlighter": "^16.1.0",
     "recharts": "^3.7.0",
-    "serve": "^14.2.5"
+    "serve": "^14.2.5",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

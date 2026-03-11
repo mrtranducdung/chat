@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Markdown Styles inside Chat */
+.prose ul { list-style-type: disc; padding-left: 1.2em; margin-top: 0.5em; margin-bottom: 0.5em; }
+.prose ol { list-style-type: decimal; padding-left: 1.2em; margin-top: 0.5em; margin-bottom: 0.5em; }
+.prose strong { font-weight: 700; color: inherit; }
+.prose a { color: #2563eb; text-decoration: underline; }
+.prose p { margin-bottom: 0.5em; }
+.prose p:last-child { margin-bottom: 0; }
+.prose h3 { font-weight: 700; font-size: 1.1em; margin-top: 1em; margin-bottom: 0.5em; }
