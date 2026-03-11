@@ -178,9 +178,14 @@ export default function Home() {
                     <span className="font-medium">{t('home.solution.m1.li3')}</span>
                   </li>
                 </ul>
-                <Link to="/products/dashboard-agent" className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 group">
-                  {t('home.solution.m1.link')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                <a
+                  href="https://geminibot-frontend.onrender.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
+                >
+                  Click to Demo <ArrowRight className="w-4 h-4" />
+                </a>
               </div>
               <div className="order-1 lg:order-2 relative">
                 <div className="absolute -inset-4 bg-blue-100 rounded-3xl -z-10 transform rotate-2"></div>
