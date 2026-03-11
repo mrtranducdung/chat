@@ -28,12 +28,14 @@ export default function DashboardAgent() {
                 {t('dashboard.hero.desc')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  to="/contact"
+                <a
+                  href="https://geminibot-frontend.onrender.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
                 >
-                  {t('dashboard.hero.book')} <ArrowRight className="w-5 h-5" />
-                </Link>
+                  Click to Demo <ArrowRight className="w-5 h-5" />
+                </a>
               </div>
             </motion.div>
             <motion.div
