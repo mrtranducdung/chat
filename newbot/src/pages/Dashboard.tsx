@@ -5,8 +5,8 @@ import {
   BarChart, LineChart, PieChart, Pie, Cell,
   FunnelChart, Funnel, LabelList, XAxis, YAxis, CartesianGrid, Legend, ComposedChart
 } from 'recharts';
-import { Search, Bell, Bot, AlertCircle, CheckCircle2, TrendingUp, TrendingDown, DollarSign, Activity, Briefcase, Zap, FileText, Mail, Building } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { Search, Bell, Bot, Filter, ChevronRight, AlertCircle, CheckCircle2, TrendingUp, TrendingDown, DollarSign, Activity, Users, Briefcase, Zap, FileText, MessageSquare, Plus, Mail, Building, Download, Send, X } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import { cn } from '../utils/cn';
 
 import { RevenueView } from '../components/dashboard/RevenueView';
@@ -92,7 +92,34 @@ const wipVsPlanData = [
   { month: 'Dec', wip: 9500, plan: 9000, isYTD: false },
 ];
 
-const KpiWidget = React.memo(({ kpi, chartType, t }: { kpi: any, chartType: string, t: (key: string) => string }) => {
+const ComparisonCard = React.memo(({ title, value1, label1, value2, label2, status }: any) => {
+  const statusColors = {
+    success: 'text-emerald-700 bg-emerald-100',
+    warning: 'text-amber-700 bg-amber-100',
+    danger: 'text-rose-700 bg-rose-100',
+    neutral: 'text-slate-700 bg-slate-100'
+  };
+  
+  return (
+    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+      <h3 className="text-sm font-bold text-slate-500 mb-4">{title}</h3>
+      <div className="flex items-end justify-between mt-auto">
+        <div>
+          <div className="text-2xl font-black text-slate-800 font-mono">{value1}</div>
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">{label1}</div>
+        </div>
+        <div className="text-right">
+          <div className={cn("text-sm font-bold px-2.5 py-1 rounded-lg inline-block mb-1 font-mono", statusColors[status as keyof typeof statusColors])}>
+            {value2}
+          </div>
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label2}</div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const KpiWidget = React.memo(({ kpi, chartType }: { kpi: any, chartType: string }) => {
   const data = React.useMemo(() => generateDummyData(chartType), [chartType]);
   const value = React.useMemo(() => Math.floor(Math.random() * 10000) + 1000, []);
   const trend = React.useMemo(() => Math.floor(Math.random() * 20) - 10, []);
@@ -105,7 +132,7 @@ const KpiWidget = React.memo(({ kpi, chartType, t }: { kpi: any, chartType: stri
           {trend >= 0 ? '+' : ''}{trend}%
         </span>
       </div>
-
+      
       {chartType === 'card' && (
         <div className="flex-1 flex flex-col justify-center">
           <h3 className="text-3xl font-black text-slate-800 font-mono">{value.toLocaleString()}</h3>
@@ -185,7 +212,7 @@ export const Dashboard = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-
+  
   const notifRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -193,13 +220,18 @@ export const Dashboard = () => {
   const [configuredKpis, setConfiguredKpis] = useState<any[]>([]);
 
   useEffect(() => {
+    // Load config from localStorage
     const tenantSettingsStr = localStorage.getItem('tenant_settings');
     let savedIndustry = 'mfg';
     if (tenantSettingsStr) {
       try {
         const settings = JSON.parse(tenantSettingsStr);
-        if (settings.industry) savedIndustry = settings.industry;
-      } catch (e) {}
+        if (settings.industry) {
+          savedIndustry = settings.industry;
+        }
+      } catch (e) {
+        console.error('Failed to parse tenant settings');
+      }
     }
     setIndustryId(savedIndustry);
 
@@ -208,16 +240,19 @@ export const Dashboard = () => {
     if (savedSelectionsStr) {
       try {
         selections = JSON.parse(savedSelectionsStr);
-      } catch (e) {}
+      } catch (e) {
+        console.error('Failed to parse selections');
+      }
     }
 
+    // Filter KPIs for the current industry
     const groups = KPI_GROUPS.filter(g => g.industryId === savedIndustry);
     const kpis = KPI_ITEMS.filter(k => groups.some(g => g.id === k.groupId));
 
     const activeKpis = kpis.filter(k => {
       const sel = selections[k.id];
       if (sel) return sel.visible;
-      return k.defaultVisible;
+      return k.defaultVisible; // fallback
     }).map(k => ({
       ...k,
       displayOrder: selections[k.id]?.displayOrder ?? 999,
@@ -227,6 +262,7 @@ export const Dashboard = () => {
     setConfiguredKpis(activeKpis);
   }, []);
 
+  // Group active KPIs by their group
   const groupedKpis = React.useMemo(() => {
     return KPI_GROUPS.filter(g => g.industryId === industryId).map(group => ({
       ...group,
@@ -236,7 +272,7 @@ export const Dashboard = () => {
 
   const industryName = React.useMemo(() => {
     const ind = INDUSTRIES.find(i => i.id === industryId);
-    return ind ? (t(`industry.${ind.id}`) || ind.name) : 'Dashboard';
+    return ind ? t(`industry.${ind.id}`) : 'Dashboard';
   }, [industryId, t]);
 
   const [metrics, setMetrics] = useState({
@@ -246,6 +282,7 @@ export const Dashboard = () => {
     margin: 38.5
   });
 
+  // Proactive Trigger Logic
   useEffect(() => {
     if (metrics.revenue < metrics.target * 0.8) {
       const event = new CustomEvent('proactive-trigger', {
@@ -334,17 +371,19 @@ export const Dashboard = () => {
           </div>
           <div className="relative flex-1 max-w-md hidden md:block" ref={searchRef}>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input
-              type="text"
-              placeholder={t('dashboard.search')}
+            <input 
+              type="text" 
+              placeholder={t('dashboard.search')} 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" 
             />
+            
+            {/* Search Dropdown */}
             <AnimatePresence>
               {isSearchFocused && searchQuery && (
-                <motion.div
+                <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
@@ -365,27 +404,28 @@ export const Dashboard = () => {
             </AnimatePresence>
           </div>
         </div>
-
+        
         <div className="flex items-center gap-3">
-          <button
+          <button 
             onClick={handleAskAgent}
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center gap-2 shadow-sm shadow-indigo-200 transition-all"
           >
             <Bot size={16} /> {t('dashboard.askAgent')}
           </button>
-
+          
           <div className="relative" ref={notifRef}>
-            <button
+            <button 
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               className={`p-2 rounded-full relative transition-colors ${isNotificationsOpen ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
             >
               <Bell size={20} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
-
+            
+            {/* Notifications Dropdown */}
             <AnimatePresence>
               {isNotificationsOpen && (
-                <motion.div
+                <motion.div 
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -483,33 +523,35 @@ export const Dashboard = () => {
       </div>
 
       {/* WIP vs Plan Chart */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-800">{t('dashboard.wipVsPlan')}</h2>
-        </div>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={wipVsPlanData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-              <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{ fill: '#f8fafc' }} />
-              <Legend verticalAlign="top" height={36} iconType="circle" />
-              <Bar dataKey="wip" name={t('dashboard.wipActual')} radius={[4, 4, 0, 0]} barSize={40}>
-                {wipVsPlanData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.isYTD ? '#6366f1' : '#c7d2fe'} />
-                ))}
-              </Bar>
-              <Line type="monotone" dataKey="plan" name={t('dashboard.plan')} stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-            </ComposedChart>
-          </ResponsiveContainer>
+      <div className="mt-8 mb-6">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-slate-800">{t('dashboard.wipVsPlan')}</h2>
+          </div>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={wipVsPlanData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{fill: '#f8fafc'}} />
+                <Legend verticalAlign="top" height={36} iconType="circle" />
+                <Bar dataKey="wip" name={t('dashboard.wipActual')} radius={[4, 4, 0, 0]} barSize={40}>
+                  {wipVsPlanData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.isYTD ? '#6366f1' : '#c7d2fe'} />
+                  ))}
+                </Bar>
+                <Line type="monotone" dataKey="plan" name={t('dashboard.plan')} stroke="#10b981" strokeWidth={3} dot={{r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 6}} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
       {/* Dynamic KPI Groups */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 mt-8">
         <h2 className="text-xl font-bold text-slate-800">{t('dashboard.overview')} - {industryName}</h2>
-        <button
+        <button 
           onClick={() => setMetrics(prev => ({ ...prev, revenue: 95 }))}
           className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-100 transition-colors flex items-center gap-1 font-medium"
         >
@@ -529,7 +571,7 @@ export const Dashboard = () => {
               <div className="p-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {group.kpis.map((kpi: any) => (
-                    <KpiWidget key={kpi.id} kpi={kpi} chartType={kpi.chartType as string} t={t} />
+                    <KpiWidget key={kpi.id} kpi={kpi} chartType={kpi.chartType as string} />
                   ))}
                 </div>
               </div>
@@ -539,33 +581,41 @@ export const Dashboard = () => {
       </div>
 
       {/* Sales Funnel Section */}
-      <div>
+      <div className="mb-6 mt-8">
         <h2 className="text-xl font-bold text-slate-800 mb-4">{t('dashboard.salesFunnel')}</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* Funnel Chart */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
             <h3 className="text-sm font-bold text-slate-800 mb-4">{t('dashboard.salesPipelineFunnel')}</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <FunnelChart>
                   <Tooltip />
-                  <Funnel dataKey="value" data={funnelData} isAnimationActive>
+                  <Funnel
+                    dataKey="value"
+                    data={funnelData}
+                    isAnimationActive
+                  >
                     <LabelList position="right" fill="#000" stroke="none" dataKey="name" />
                   </Funnel>
                 </FunnelChart>
               </ResponsiveContainer>
             </div>
           </div>
-
+          
+          {/* Conversion by Month */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
             <h3 className="text-sm font-bold text-slate-800 mb-4">{t('dashboard.conversionRate')}</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={conversionByMonthData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                  <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={3} dot={{r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 6}} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -573,12 +623,21 @@ export const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Performance by Lead Source */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
             <h3 className="text-sm font-bold text-slate-800 mb-4">{t('dashboard.perfByLeadSource')}</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={leadSourceData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                  <Pie
+                    data={leadSourceData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
                     {leadSourceData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
@@ -590,17 +649,18 @@ export const Dashboard = () => {
             </div>
           </div>
 
+          {/* Performance by Sales Rep */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
             <h3 className="text-sm font-bold text-slate-800 mb-4">{t('dashboard.perfBySalesRep')}</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={salesRepData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                  <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{ fill: '#f8fafc' }} />
+                  <XAxis type="number" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{fill: '#f8fafc'}} />
                   <Legend verticalAlign="top" height={36} iconType="circle" />
-                  <Bar dataKey="won" name="Won" stackId="a" fill="#10b981" barSize={20} />
+                  <Bar dataKey="won" name="Won" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} barSize={20} />
                   <Bar dataKey="lost" name="Lost" stackId="a" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
@@ -609,7 +669,7 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Agent Insights */}
+      {/* Tầng 3: Agent Insights + Actions */}
       <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 overflow-hidden relative">
         <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
         <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-indigo-50/30">
@@ -621,7 +681,7 @@ export const Dashboard = () => {
           </div>
           <span className="text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">{t('dashboard.updatedAgo')}</span>
         </div>
-
+        
         <div className="p-5 grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <ul className="space-y-3">
@@ -630,7 +690,7 @@ export const Dashboard = () => {
                 <div>
                   <p className="text-sm text-slate-700 font-medium">{t('dashboard.insight1')}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><FileText size={12} /> Q3_Forecast.xlsx</span>
+                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><FileText size={12}/> Q3_Forecast.xlsx</span>
                   </div>
                 </div>
               </li>
@@ -639,7 +699,7 @@ export const Dashboard = () => {
                 <div>
                   <p className="text-sm text-slate-700 font-medium">{t('dashboard.insight2')}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><FileText size={12} /> CRM_Export.csv</span>
+                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><FileText size={12}/> CRM_Export.csv</span>
                   </div>
                 </div>
               </li>
@@ -648,13 +708,13 @@ export const Dashboard = () => {
                 <div>
                   <p className="text-sm text-slate-700 font-medium">{t('dashboard.insight3')}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><Mail size={12} /> Email_Thread_TechFlow</span>
+                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><Mail size={12}/> Email_Thread_TechFlow</span>
                   </div>
                 </div>
               </li>
             </ul>
           </div>
-
+          
           <div className="flex flex-col gap-3 justify-center border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
             <button onClick={() => setActiveView('reports')} className="w-full bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 hover:border-indigo-300 transition-all flex items-center justify-center gap-2 shadow-sm">
               <FileText size={16} className="text-indigo-600" /> {t('dashboard.generateReport')}
@@ -668,6 +728,8 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
+
     </motion.div>
   );
 };
+

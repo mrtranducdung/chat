@@ -14,12 +14,15 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  loginAlert: string | null;
+  clearLoginAlert: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loginAlert, setLoginAlert] = useState<string | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('current_user');
@@ -72,8 +75,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('current_tenant');
   };
 
+  const clearLoginAlert = () => setLoginAlert(null);
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, loginAlert, clearLoginAlert }}>
       {children}
     </AuthContext.Provider>
   );

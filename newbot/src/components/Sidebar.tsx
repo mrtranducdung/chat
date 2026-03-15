@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Settings, ShieldAlert, LogOut, KeyRound, X, Globe, ChevronDown } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
-import { useAgent } from '../contexts/AgentContext';
+import { Home, LayoutDashboard, Settings, MessageSquare, ShieldAlert, LogOut, User, KeyRound, X, Globe, ChevronDown } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { useAgent } from '../context/AgentContext';
 import { cn } from '../utils/cn';
 
 export const Sidebar = () => {
@@ -39,6 +39,7 @@ export const Sidebar = () => {
       return;
     }
 
+    // Simulate API call
     setTimeout(() => {
       setPasswordSuccess(t('auth.passwordSuccess'));
       setTimeout(() => {
@@ -73,15 +74,18 @@ export const Sidebar = () => {
               <span className="text-xs text-slate-300 font-medium uppercase">{language}</span>
               <ChevronDown size={12} className="text-slate-400" />
             </button>
-
+            
             {isLangMenuOpen && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setIsLangMenuOpen(false)} />
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setIsLangMenuOpen(false)}
+                />
                 <div className="absolute right-0 mt-1 w-28 bg-slate-800 border border-slate-700 rounded-lg shadow-lg overflow-hidden z-20 py-1">
                   {[
                     { code: 'ja', label: '日本語' },
                     { code: 'vi', label: 'Tiếng Việt' },
-                    { code: 'en', label: 'English' },
+                    { code: 'en', label: 'English' }
                   ].map((lang) => (
                     <button
                       key={lang.code}
@@ -90,10 +94,10 @@ export const Sidebar = () => {
                         setIsLangMenuOpen(false);
                       }}
                       className={cn(
-                        'w-full text-left px-3 py-2 text-xs transition-colors',
-                        language === lang.code
-                          ? 'bg-indigo-500/10 text-indigo-400 font-medium'
-                          : 'text-slate-300 hover:bg-slate-700'
+                        "w-full text-left px-3 py-2 text-xs transition-colors",
+                        language === lang.code 
+                          ? "bg-indigo-500/10 text-indigo-400 font-medium" 
+                          : "text-slate-300 hover:bg-slate-700"
                       )}
                     >
                       {lang.label}
@@ -104,7 +108,6 @@ export const Sidebar = () => {
             )}
           </div>
         </div>
-
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
@@ -112,10 +115,10 @@ export const Sidebar = () => {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors',
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors",
                   isActive
-                    ? 'bg-indigo-600 text-white font-medium'
-                    : 'hover:bg-slate-800 hover:text-white'
+                    ? "bg-indigo-600 text-white font-medium"
+                    : "hover:bg-slate-800 hover:text-white"
                 )
               }
             >
@@ -139,13 +142,13 @@ export const Sidebar = () => {
                 <p className="text-sm font-medium text-white truncate">{user?.name}</p>
                 <p className="text-xs text-slate-400 truncate">{user?.role}</p>
               </div>
-              <ChevronDown size={16} className={cn('text-slate-400 transition-transform', isProfileMenuOpen && 'rotate-180')} />
+              <ChevronDown size={16} className={cn("text-slate-400 transition-transform", isProfileMenuOpen && "rotate-180")} />
             </button>
 
             {isProfileMenuOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-10"
+                <div 
+                  className="fixed inset-0 z-10" 
                   onClick={() => setIsProfileMenuOpen(false)}
                 />
                 <div className="absolute bottom-full left-0 right-0 mb-2 bg-slate-800 border border-slate-700 rounded-xl shadow-lg overflow-hidden z-20 py-1">
@@ -182,8 +185,8 @@ export const Sidebar = () => {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors',
-                isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'
+                "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors",
+                isActive ? "text-indigo-600" : "text-slate-500 hover:text-slate-900"
               )
             }
           >

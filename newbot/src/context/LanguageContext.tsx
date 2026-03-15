@@ -13,6 +13,7 @@ const translations: Record<Language, Record<string, string>> = {
     'menu.dashboard': 'Bảng điều khiển',
     'menu.admin': 'Quản trị',
     'menu.settings': 'Cài đặt',
+    'chatbot.title': 'Trợ lý AI Doanh nghiệp',
     'chatbot.placeholder': 'Nhập tin nhắn...',
     'chatbot.send': 'Gửi',
     'home.announcements': 'Thông báo quan trọng',
@@ -202,6 +203,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.createNewMapping': 'Tạo Mapping mới',
     'admin.autoMap': 'Auto Map',
     'admin.sync': 'Đồng bộ',
+    'admin.integrationsDesc': 'Kết nối các ứng dụng của bên thứ ba để đồng bộ hóa dữ liệu và kích hoạt các tính năng đa nền tảng.',
     'admin.connect': 'Kết nối',
     'admin.disconnect': 'Ngắt kết nối',
     'admin.aiAgentStudio': 'AI Agent Studio',
@@ -220,6 +222,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.emailAddress': 'Địa chỉ Email',
     'admin.department': 'Phòng ban',
     'admin.role': 'Vai trò',
+    'admin.status': 'Trạng thái',
     'admin.resetPassword': 'Đặt lại mật khẩu (Tùy chọn)',
     'admin.initialPassword': 'Mật khẩu ban đầu',
     'admin.leaveBlank': 'Để trống để giữ nguyên',
@@ -227,6 +230,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.modulePermissions': 'Quyền truy cập Module',
     'admin.adminAccessNote': 'Admin tự động có toàn quyền truy cập vào tất cả các module.',
     'admin.saveUser': 'Lưu người dùng',
+    'admin.cancel': 'Hủy',
     'admin.connectDBAPI': 'Kết nối Database/API',
     'admin.connectionType': 'Loại kết nối',
     'admin.displayName': 'Tên hiển thị',
@@ -309,7 +313,11 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.atRisk': 'Có nguy cơ',
     'settings.cancel': 'Hủy',
     'settings.saveGoal': 'Lưu Mục tiêu',
+    'login.title': 'Đăng nhập',
+    'login.email': 'Email',
+    'login.password': 'Mật khẩu',
     'login.submit': 'Đăng nhập',
+    'login.error': 'Email hoặc mật khẩu không đúng',
     'chatbot.greeting': 'Xin chào! Tôi là {name}. Tôi có thể giúp gì cho bạn?',
     'chatbot.online': 'Trực tuyến',
     'chatbot.suggestedQuestions': 'Câu hỏi gợi ý',
@@ -330,6 +338,7 @@ const translations: Record<Language, Record<string, string>> = {
     'menu.dashboard': 'ダッシュボード',
     'menu.admin': '管理',
     'menu.settings': '設定',
+    'chatbot.title': 'AIビジネスアシスタント',
     'chatbot.placeholder': 'メッセージを入力...',
     'chatbot.send': '送信',
     'home.announcements': '重要なお知らせ',
@@ -519,6 +528,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.createNewMapping': '新しいマッピングを作成',
     'admin.autoMap': '自動マップ',
     'admin.sync': '同期',
+    'admin.integrationsDesc': 'サードパーティのアプリケーションを接続してデータを同期し、クロスプラットフォーム機能を有効にします。',
     'admin.connect': '接続',
     'admin.disconnect': '切断',
     'admin.aiAgentStudio': 'AIエージェントスタジオ',
@@ -537,6 +547,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.emailAddress': 'メールアドレス',
     'admin.department': '部署',
     'admin.role': '役割',
+    'admin.status': 'ステータス',
     'admin.resetPassword': 'パスワードをリセット (任意)',
     'admin.initialPassword': '初期パスワード',
     'admin.leaveBlank': '変更しない場合は空白',
@@ -544,6 +555,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.modulePermissions': 'モジュール権限',
     'admin.adminAccessNote': '管理者は自動的にすべてのモジュールへのフルアクセス権を持ちます。',
     'admin.saveUser': 'ユーザーを保存',
+    'admin.cancel': 'キャンセル',
     'admin.connectDBAPI': 'データベース/APIを接続',
     'admin.connectionType': '接続タイプ',
     'admin.displayName': '表示名',
@@ -626,7 +638,11 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.atRisk': 'リスクあり',
     'settings.cancel': 'キャンセル',
     'settings.saveGoal': '目標を保存',
+    'login.title': 'ログイン',
+    'login.email': 'メールアドレス',
+    'login.password': 'パスワード',
     'login.submit': 'ログイン',
+    'login.error': 'メールアドレスまたはパスワードが正しくありません',
     'chatbot.greeting': 'こんにちは！私は {name} です。何かお手伝いしましょうか？',
     'chatbot.online': 'オンライン',
     'chatbot.suggestedQuestions': 'おすすめの質問',
@@ -647,6 +663,7 @@ const translations: Record<Language, Record<string, string>> = {
     'menu.dashboard': 'Dashboard',
     'menu.admin': 'Admin',
     'menu.settings': 'Settings',
+    'chatbot.title': 'AI Business Agent',
     'chatbot.placeholder': 'Type a message...',
     'chatbot.send': 'Send',
     'home.announcements': 'Announcements',
@@ -836,6 +853,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.createNewMapping': 'Create New Mapping',
     'admin.autoMap': 'Auto Map',
     'admin.sync': 'Sync',
+    'admin.integrationsDesc': 'Connect third-party applications to sync data and enable cross-platform features.',
     'admin.connect': 'Connect',
     'admin.disconnect': 'Disconnect',
     'admin.aiAgentStudio': 'AI Agent Studio',
@@ -854,6 +872,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.emailAddress': 'Email Address',
     'admin.department': 'Department',
     'admin.role': 'Role',
+    'admin.status': 'Status',
     'admin.resetPassword': 'Reset Password (Optional)',
     'admin.initialPassword': 'Initial Password',
     'admin.leaveBlank': 'Leave blank to keep current',
@@ -861,6 +880,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.modulePermissions': 'Module Permissions',
     'admin.adminAccessNote': 'Admins have full access to all modules automatically.',
     'admin.saveUser': 'Save User',
+    'admin.cancel': 'Cancel',
     'admin.connectDBAPI': 'Connect Database/API',
     'admin.connectionType': 'Connection Type',
     'admin.displayName': 'Display Name',
@@ -943,7 +963,11 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.atRisk': 'At Risk',
     'settings.cancel': 'Cancel',
     'settings.saveGoal': 'Save Goal',
+    'login.title': 'Login',
+    'login.email': 'Email',
+    'login.password': 'Password',
     'login.submit': 'Login',
+    'login.error': 'Invalid email or password',
     'chatbot.greeting': 'Hello! I am {name}. How can I help you?',
     'chatbot.online': 'Online',
     'chatbot.suggestedQuestions': 'Suggested Questions',
@@ -965,14 +989,7 @@ const translations: Record<Language, Record<string, string>> = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguageState] = useState<Language>(
-    () => (localStorage.getItem('lang') as Language) || 'ja'
-  );
-
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem('lang', lang);
-  };
+  const [language, setLanguage] = useState<Language>('ja');
 
   const t = (key: string) => {
     return translations[language][key] || key;

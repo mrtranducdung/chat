@@ -1,29 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Loader2, Briefcase, Users, DollarSign, ChevronDown, Sparkles, Calendar, Paperclip } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, BarChart2, Briefcase, Users, DollarSign, ChevronDown, Sparkles, Calendar, Paperclip } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 import { GoogleGenAI, Type } from '@google/genai';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { useLocation } from 'react-router-dom';
 import { INDUSTRIES, KPI_GROUPS, KPI_ITEMS } from '../data/kpiData';
-import { useAgent } from '../contexts/AgentContext';
+import { useAgent } from '../context/AgentContext';
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 const AGENTS = [
-  { id: 'sales', name: 'Sales Copilot', icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-100', prompt: 'Analyze the Q3 sales pipeline' },
-  { id: 'hr', name: 'HR Assistant', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-100', prompt: 'Create an offer letter for an engineer' },
-  { id: 'finance', name: 'Finance Analyst', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-100', prompt: 'Show P&L variance against plan' },
+  { id: 'sales', name: '営業コパイロット', icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-100', prompt: '第3四半期のセールスパイプラインを分析して' },
+  { id: 'hr', name: '人事アシスタント', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-100', prompt: 'エンジニアの採用内定通知書を作成して' },
+  { id: 'finance', name: '財務アナリスト', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-100', prompt: '計画に対するP&Lの差異を表示して' },
 ];
 
 export const AIChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const location = useLocation();
   const { agentSettings } = useAgent();
   const [activeAgent, setActiveAgent] = useState(AGENTS[0]);
   const [showAgentSelect, setShowAgentSelect] = useState(false);
-  const [messages, setMessages] = useState<{ text: string; isBot: boolean; chartData?: any; actionData?: any; suggestions?: string[] }[]>([
+  const [messages, setMessages] = useState<{ text: string; isBot: boolean; chartData?: any; actionData?: any; suggestions?: string[] }>([
     { text: t('chatbot.greeting').replace('{name}', agentSettings.name), isBot: true },
   ]);
   const [input, setInput] = useState('');
@@ -45,6 +45,7 @@ export const AIChatbot = () => {
   }, []);
 
   useEffect(() => {
+    // Initialize Gemini Chat
     try {
       const pageContext = location.pathname === '/' ? 'Dashboard' : location.pathname.replace('/', '');
       const dashboardContext = `
@@ -57,16 +58,16 @@ ${INDUSTRIES.map(ind => `
 `).join('')}
 `;
 
-      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
       chatRef.current = ai.chats.create({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3-flash-preview',
         config: {
           systemInstruction: `You are a highly capable AI Business Agent named ${agentSettings.name} assisting a Japanese SME CEO. You specialize in ${activeAgent.id}. Provide concise, professional, and actionable advice. You can communicate in Japanese, Vietnamese, and English depending on the user prompt.
-
+          
 CURRENT PAGE: The user is currently viewing the "${pageContext}" page of the application. If they ask general questions, tailor your response to this context.
 
 ${dashboardContext}
-
+          
 CRITICAL INSTRUCTION: When the user asks for business data, metrics, or statistics (e.g., revenue, sales, products sold, expenses), YOU MUST respond with a JSON block representing a chart, instead of long text.
 The JSON block MUST be enclosed in \`\`\`json ... \`\`\` and follow this schema:
 {
@@ -121,6 +122,7 @@ Do not include any other text outside the JSON blocks if you are returning a cha
   }, [activeAgent, location.pathname]);
 
   useEffect(() => {
+    // Scroll to bottom when messages change
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -134,7 +136,8 @@ Do not include any other text outside the JSON blocks if you are returning a cha
       setUploadedFile({ name: file.name, content });
     };
     reader.readAsText(file);
-
+    
+    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -143,7 +146,7 @@ Do not include any other text outside the JSON blocks if you are returning a cha
   const handleSend = async (textOverride?: string) => {
     const userMsg = textOverride || input.trim();
     if (!userMsg && !uploadedFile) return;
-
+    
     let displayMsg = userMsg;
     let apiMsg = userMsg;
 
@@ -177,16 +180,16 @@ Do not include any other text outside the JSON blocks if you are returning a cha
             responseText = responseText || t('chatbot.meetingScheduled');
           } else if (call.name === 'consultOtherAgent') {
             const targetAgent = AGENTS.find(a => a.id === call.args.targetAgentId) || AGENTS[0];
-
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
+            
+            const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
             const tempChat = ai.chats.create({
-              model: 'gemini-2.0-flash',
+              model: 'gemini-3-flash-preview',
               config: {
                 systemInstruction: `You are ${targetAgent.name}. Answer this question concisely and professionally: ${call.args.question}`
               }
             });
             const consultResponse = await tempChat.sendMessage({ message: call.args.question });
-
+            
             actionData = {
               type: 'consult',
               agent: targetAgent,
@@ -197,18 +200,25 @@ Do not include any other text outside the JSON blocks if you are returning a cha
           }
         }
 
+        // Check if response contains JSON blocks
         const jsonBlocks = [...responseText.matchAll(/```json\n([\s\S]*?)\n```/g)];
         for (const match of jsonBlocks) {
           try {
             const parsed = JSON.parse(match[1]);
-            if (parsed.type === 'chart') chartData = parsed;
-            else if (parsed.type === 'suggestions') suggestions = parsed.questions;
-          } catch (e) {}
+            if (parsed.type === 'chart') {
+              chartData = parsed;
+            } else if (parsed.type === 'suggestions') {
+              suggestions = parsed.questions;
+            }
+          } catch (e) {
+            console.error("Failed to parse JSON block", e);
+          }
         }
-
+        
+        // Remove all json blocks from the text
         responseText = responseText.replace(/```json\n[\s\S]*?\n```/g, '').trim();
         if (!responseText && chartData) {
-          responseText = chartData.title || t('chatbot.requestedData');
+           responseText = chartData.title || t('chatbot.requestedData');
         }
 
         setMessages((prev) => [...prev, { text: responseText, isBot: true, chartData, actionData, suggestions }]);
@@ -288,7 +298,7 @@ Do not include any other text outside the JSON blocks if you are returning a cha
             {/* Header */}
             <div className="bg-white/80 backdrop-blur-md border-b border-slate-100 p-4 flex items-center justify-between relative z-20">
               <div className="relative">
-                <button
+                <button 
                   onClick={() => setShowAgentSelect(!showAgentSelect)}
                   className="flex items-center gap-2 hover:bg-slate-50 p-1.5 -ml-1.5 rounded-lg transition-colors"
                 >
@@ -309,9 +319,10 @@ Do not include any other text outside the JSON blocks if you are returning a cha
                   </div>
                 </button>
 
+                {/* Agent Dropdown */}
                 <AnimatePresence>
                   {showAgentSelect && (
-                    <motion.div
+                    <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -330,7 +341,9 @@ Do not include any other text outside the JSON blocks if you are returning a cha
                           <div className={`w-8 h-8 rounded-full ${agent.bg} ${agent.color} flex items-center justify-center shrink-0`}>
                             <agent.icon size={16} />
                           </div>
-                          <div className="text-sm font-bold text-slate-800">{agent.name}</div>
+                          <div>
+                            <div className="text-sm font-bold text-slate-800">{agent.name}</div>
+                          </div>
                         </button>
                       ))}
                     </motion.div>
@@ -338,9 +351,11 @@ Do not include any other text outside the JSON blocks if you are returning a cha
                 </AnimatePresence>
               </div>
 
-              <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors text-slate-400">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-1 text-slate-400">
+                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
@@ -348,7 +363,7 @@ Do not include any other text outside the JSON blocks if you are returning a cha
               {messages.length === 1 && (
                 <div className="flex flex-col gap-2 mb-6">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">{t('chatbot.suggestedQuestions')}</p>
-                  <button
+                  <button 
                     onClick={() => handleSend(activeAgent.prompt)}
                     className="text-left p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 hover:border-indigo-300 hover:shadow-sm transition-all flex items-center gap-2 group"
                   >
@@ -372,7 +387,7 @@ Do not include any other text outside the JSON blocks if you are returning a cha
                   <div className={`max-w-[80%] p-3 rounded-2xl text-sm whitespace-pre-wrap shadow-sm ${msg.isBot ? 'bg-white border border-slate-200 text-slate-800 rounded-tl-none' : 'bg-indigo-600 text-white rounded-tr-none'}`}>
                     {msg.text}
                     {msg.chartData && renderChart(msg.chartData)}
-
+                    
                     {msg.actionData && msg.actionData.type === 'meeting' && (
                       <div className="mt-3 w-full bg-indigo-50 rounded-xl p-3 border border-indigo-100 flex flex-col gap-2">
                         <div className="flex items-center gap-2 text-indigo-700 font-bold text-sm">
@@ -381,9 +396,7 @@ Do not include any other text outside the JSON blocks if you are returning a cha
                         <div className="text-xs text-indigo-600">
                           <p><strong>{t('chatbot.title')}:</strong> {msg.actionData.title}</p>
                           <p><strong>{t('chatbot.time')}:</strong> {msg.actionData.time}</p>
-                          {msg.actionData.attendees && msg.actionData.attendees.length > 0 && (
-                            <p><strong>{t('chatbot.attendees')}:</strong> {msg.actionData.attendees.join(', ')}</p>
-                          )}
+                          {msg.actionData.attendees && msg.actionData.attendees.length > 0 && <p><strong>{t('chatbot.attendees')}:</strong> {msg.actionData.attendees.join(', ')}</p>}
                         </div>
                       </div>
                     )}
@@ -421,7 +434,6 @@ Do not include any other text outside the JSON blocks if you are returning a cha
                   </div>
                 </div>
               ))}
-
               {isLoading && (
                 <div className="flex justify-start">
                   {agentSettings.logo ? (

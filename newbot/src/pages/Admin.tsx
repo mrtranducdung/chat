@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Users, Database, Bot, Link, ChevronRight, ArrowLeft, Upload, Search, Plus, Trash2, Edit2, FileText, CheckCircle2, X, Settings2, AlertCircle, MessageSquare, Briefcase, Activity, DollarSign, Zap, LayoutDashboard, Building2, FileSpreadsheet, Server, BrainCircuit, LayoutTemplate, Loader2, Play, Settings, DatabaseZap, Network } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 import { DashboardConfig } from '../components/admin/DashboardConfig';
 import { INDUSTRIES } from '../data/kpiData';
 
@@ -56,7 +56,7 @@ export const Admin = () => {
 
   const handlePermissionToggle = (permId: string) => {
     if (selectedRole === 'Admin') return;
-    setSelectedPermissions(prev =>
+    setSelectedPermissions(prev => 
       prev.includes(permId) ? prev.filter(p => p !== permId) : [...prev, permId]
     );
   };
@@ -78,7 +78,7 @@ export const Admin = () => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const role = formData.get('role') as string;
-
+    
     const newUser = {
       id: editingUser ? editingUser.id : Date.now(),
       name: formData.get('name') as string,
@@ -175,8 +175,8 @@ export const Admin = () => {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {adminModules.map((module) => (
-              <div
-                key={module.id}
+              <div 
+                key={module.id} 
                 onClick={() => setActiveModule(module.id)}
                 className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group"
               >
@@ -200,7 +200,7 @@ export const Admin = () => {
             className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[600px] flex flex-col"
           >
             <div className="p-4 border-b border-slate-200 flex items-center gap-4 bg-slate-50">
-              <button
+              <button 
                 onClick={() => setActiveModule(null)}
                 className="p-2 hover:bg-slate-200 rounded-xl transition-colors text-slate-600"
                 title={t('admin.backToAdmin')}
@@ -211,9 +211,9 @@ export const Admin = () => {
                 {adminModules.find(m => m.id === activeModule)?.title}
               </h2>
             </div>
-
+            
             <div className="p-6 flex-1 overflow-y-auto">
-
+              
               {/* --- COMPANY PROFILE MODULE --- */}
               {activeModule === 'company' && (
                 <div className="space-y-6 max-w-2xl">
@@ -261,14 +261,14 @@ export const Admin = () => {
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input type="text" placeholder={t('admin.searchUsers')} className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
                     </div>
-                    <button
+                    <button 
                       onClick={() => openUserModal()}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2"
                     >
                       <Plus size={16} /> {t('admin.addUser')}
                     </button>
                   </div>
-
+                  
                   <div className="overflow-x-auto rounded-xl border border-slate-200">
                     <table className="w-full text-left border-collapse">
                       <thead className="bg-slate-50">
@@ -362,7 +362,7 @@ export const Admin = () => {
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <p className="text-sm text-slate-500">{t('admin.uploadDesc')}</p>
-                        <button
+                        <button 
                           onClick={() => setIsConnectDBModalOpen(true)}
                           className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors shrink-0"
                         >
@@ -371,7 +371,7 @@ export const Admin = () => {
                         </button>
                       </div>
 
-                      <div
+                      <div 
                         onClick={handleFileUpload}
                         className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
                           isUploading ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'
@@ -416,7 +416,7 @@ export const Admin = () => {
                                     <span>{source.records} {t('admin.records')}</span>
                                   </div>
                                   <span className={`inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                                    source.status === 'Learned' ? 'bg-emerald-100 text-emerald-700' :
+                                    source.status === 'Learned' ? 'bg-emerald-100 text-emerald-700' : 
                                     source.status === 'Connected' ? 'bg-blue-100 text-blue-700' :
                                     'bg-amber-100 text-amber-700 animate-pulse'
                                   }`}>
@@ -471,7 +471,7 @@ export const Admin = () => {
                                   </button>
                                 </div>
                               </div>
-
+                              
                               <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
                                 <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">{t('admin.detectedFields')}</p>
                                 <div className="flex flex-wrap gap-2">
@@ -480,7 +480,7 @@ export const Admin = () => {
                                       {field}
                                     </span>
                                   ))}
-                                  <button
+                                  <button 
                                     onClick={() => setIsAddSchemaModalOpen(true)}
                                     className="px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs rounded-md border-dashed hover:bg-indigo-100 transition-colors flex items-center gap-1"
                                   >
@@ -499,7 +499,7 @@ export const Admin = () => {
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <p className="text-sm text-slate-500">{t('admin.mappingDesc')}</p>
-                        <button
+                        <button 
                           onClick={() => setIsAddMappingModalOpen(true)}
                           className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors shrink-0"
                         >
@@ -520,7 +520,7 @@ export const Admin = () => {
                                   </div>
                                   <span className="text-xs font-bold text-slate-600 text-center max-w-[80px] truncate" title={schema?.name}>{schema?.name || t('admin.unknown')}</span>
                                 </div>
-
+                                
                                 <div className="flex flex-col items-center text-slate-300">
                                   <ChevronRight size={24} />
                                   <div className="h-px w-8 sm:w-12 bg-slate-200 my-1"></div>
@@ -557,7 +557,7 @@ export const Admin = () => {
               {activeModule === 'integrations' && (
                 <div className="space-y-6">
                   <p className="text-sm text-slate-500 mb-6">{t('admin.integrationsDesc')}</p>
-
+                  
                   <div className="grid gap-4">
                     {integrations.map(app => (
                       <div key={app.id} className="flex items-center justify-between p-5 border border-slate-200 rounded-xl bg-white">
@@ -570,11 +570,11 @@ export const Admin = () => {
                             <p className="text-sm text-slate-500 mt-1">{app.desc}</p>
                           </div>
                         </div>
-                        <button
+                        <button 
                           onClick={() => toggleIntegration(app.id)}
                           className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
-                            app.connected
-                              ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            app.connected 
+                              ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' 
                               : 'bg-indigo-600 text-white hover:bg-indigo-700'
                           }`}
                         >
@@ -721,8 +721,8 @@ export const Admin = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">{t('admin.role')}</label>
-                    <select
-                      name="role"
+                    <select 
+                      name="role" 
                       value={selectedRole}
                       onChange={(e) => setSelectedRole(e.target.value)}
                       className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -762,9 +762,9 @@ export const Admin = () => {
                             {isChecked && <CheckCircle2 size={14} />}
                           </div>
                           <span className="text-sm text-slate-700">{perm.label}</span>
-                          <input
-                            type="checkbox"
-                            className="hidden"
+                          <input 
+                            type="checkbox" 
+                            className="hidden" 
                             checked={isChecked}
                             onChange={() => handlePermissionToggle(perm.id)}
                             disabled={selectedRole === 'Admin'}

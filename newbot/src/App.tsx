@@ -1,8 +1,13 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { AgentProvider } from './contexts/AgentContext';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { LanguageProvider } from './context/LanguageContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AgentProvider } from './context/AgentContext';
 import { Sidebar } from './components/Sidebar';
 import { AIChatbot } from './components/AIChatbot';
 import { ProactivePopup } from './components/ProactivePopup';
@@ -19,7 +24,15 @@ const LoadingFallback = () => (
   </div>
 );
 
-const AppContent: React.FC = () => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
+
+const AppContent = () => {
   const { isAuthenticated, loginAlert, clearLoginAlert } = useAuth();
 
   if (!isAuthenticated) {
@@ -47,10 +60,10 @@ const AppContent: React.FC = () => {
         )}
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
@@ -61,16 +74,16 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
+export default function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
         <AgentProvider>
-          <AppContent />
+          <Router>
+            <AppContent />
+          </Router>
         </AgentProvider>
       </LanguageProvider>
     </AuthProvider>
   );
-};
-
-export default App;
+}
