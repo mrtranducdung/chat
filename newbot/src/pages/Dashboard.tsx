@@ -5,7 +5,7 @@ import {
   BarChart, LineChart, PieChart, Pie, Cell,
   FunnelChart, Funnel, LabelList, XAxis, YAxis, CartesianGrid, Legend, ComposedChart
 } from 'recharts';
-import { Search, Bell, Bot, Filter, ChevronRight, AlertCircle, CheckCircle2, TrendingUp, TrendingDown, DollarSign, Activity, Users, Briefcase, Zap, FileText, MessageSquare, Plus, Mail, Building, Download, Send, X } from 'lucide-react';
+import { Search, Bell, Bot, Filter, ChevronRight, AlertCircle, CheckCircle2, TrendingUp, TrendingDown, DollarSign, Activity, Users, Briefcase, Zap, FileText, MessageSquare, Plus, Mail, Building, Download, Send, X, Calendar, Globe, Package, RotateCcw, SlidersHorizontal, MapPin, Database, Tag } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { cn } from '../utils/cn';
 
@@ -119,15 +119,15 @@ const ComparisonCard = React.memo(({ title, value1, label1, value2, label2, stat
   );
 });
 
-const KpiWidget = React.memo(({ kpi, chartType }: { kpi: any, chartType: string }) => {
-  const data = React.useMemo(() => generateDummyData(chartType), [chartType]);
-  const value = React.useMemo(() => Math.floor(Math.random() * 10000) + 1000, []);
-  const trend = React.useMemo(() => Math.floor(Math.random() * 20) - 10, []);
+const KpiWidget = React.memo(({ kpi, chartType, t, filters }: { kpi: any, chartType: string, t: any, filters?: any }) => {
+  const data = React.useMemo(() => generateDummyData(chartType), [chartType, filters]);
+  const value = React.useMemo(() => Math.floor(Math.random() * 10000) + 1000, [filters]);
+  const trend = React.useMemo(() => Math.floor(Math.random() * 20) - 10, [filters]);
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-indigo-300 hover:shadow-md transition-all group flex flex-col h-full min-h-[160px]">
       <div className="flex justify-between items-start mb-3">
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-indigo-600 transition-colors line-clamp-1" title={t(`dashboard.kpi.${kpi.id}`) || kpi.name}>{t(`dashboard.kpi.${kpi.id}`) || kpi.name}</p>
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-indigo-600 transition-colors line-clamp-1" title={t(`dashboard.kpi.${kpi.id}`) !== `dashboard.kpi.${kpi.id}` ? t(`dashboard.kpi.${kpi.id}`) : kpi.name}>{t(`dashboard.kpi.${kpi.id}`) !== `dashboard.kpi.${kpi.id}` ? t(`dashboard.kpi.${kpi.id}`) : kpi.name}</p>
         <span className={cn("text-xs font-bold px-2 py-0.5 rounded whitespace-nowrap font-mono", trend >= 0 ? "text-emerald-600 bg-emerald-50" : "text-red-600 bg-red-50")}>
           {trend >= 0 ? '+' : ''}{trend}%
         </span>
@@ -213,6 +213,10 @@ export const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   
+  // Filter states
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [dashboardFiltersConfig, setDashboardFiltersConfig] = useState<any[]>([]);
+  
   const notifRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -221,6 +225,37 @@ export const Dashboard = () => {
 
   useEffect(() => {
     // Load config from localStorage
+    const savedFiltersStr = localStorage.getItem('dashboard_filters');
+    let config = [];
+    if (savedFiltersStr) {
+      try {
+        const parsedFilters = JSON.parse(savedFiltersStr);
+        config = parsedFilters.filter((f: any) => f.enabled);
+      } catch (e) {
+        console.error('Failed to parse dashboard filters');
+      }
+    }
+    
+    if (config.length === 0) {
+      // Default standard filters
+      config = [
+        { id: 'month', name: 'Month', type: 'standard', options: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
+        { id: 'location', name: 'Location', type: 'standard', options: ['Hanoi', 'Ho Chi Minh City', 'Da Nang'] },
+        { id: 'product', name: 'Product', type: 'standard', options: ['Product A', 'Product B', 'Product C'] },
+      ];
+    }
+    
+    setDashboardFiltersConfig(config);
+    
+    // Initialize filter states
+    const initialFilters: Record<string, string> = {};
+    config.forEach((f: any) => {
+      if (f.options && f.options.length > 0) {
+        initialFilters[f.id] = f.options[0];
+      }
+    });
+    setActiveFilters(initialFilters);
+
     const tenantSettingsStr = localStorage.getItem('tenant_settings');
     let savedIndustry = 'mfg';
     if (tenantSettingsStr) {
@@ -272,7 +307,7 @@ export const Dashboard = () => {
 
   const industryName = React.useMemo(() => {
     const ind = INDUSTRIES.find(i => i.id === industryId);
-    return ind ? t(`industry.${ind.id}`) : 'Dashboard';
+    return ind ? (t(`industry.${ind.id}`) !== `industry.${ind.id}` ? t(`industry.${ind.id}`) : ind.name) : 'Dashboard';
   }, [industryId, t]);
 
   const [metrics, setMetrics] = useState({
@@ -289,19 +324,19 @@ export const Dashboard = () => {
         detail: {
           id: 'revenue_drop',
           type: 'warning',
-          title: 'Revenue Alert',
-          message: `Revenue has dropped to ¥${metrics.revenue}M, which is below 80% of the target (¥${metrics.target}M).`,
-          actionLabel: 'View Recovery Plan',
+          title: t('dashboard.revenueAlert'),
+          message: t('dashboard.revenueAlertDesc').replace('{revenue}', metrics.revenue.toString()).replace('{target}', metrics.target.toString()),
+          actionLabel: t('dashboard.viewRecoveryPlan'),
           onAction: () => {
             window.dispatchEvent(new CustomEvent('open-ai-chatbot', {
-              detail: { initialMessage: "I noticed the revenue drop. I've analyzed the pipeline and found 3 at-risk deals in Osaka. Would you like me to draft follow-up emails to these clients or generate a revised forecast?" }
+              detail: { initialMessage: t('dashboard.revenueAlertBotMsg') }
             }));
           }
         }
       });
       window.dispatchEvent(event);
     }
-  }, [metrics.revenue, metrics.target]);
+  }, [metrics.revenue, metrics.target, t]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -320,6 +355,17 @@ export const Dashboard = () => {
     window.dispatchEvent(new CustomEvent('open-ai-chatbot'));
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    const resetFilters: Record<string, string> = {};
+    dashboardFiltersConfig.forEach(f => {
+      if (f.options && f.options.length > 0) {
+        resetFilters[f.id] = f.options[0];
+      }
+    });
+    setActiveFilters(resetFilters);
+  };
+
   const renderActiveView = () => {
     switch (activeView) {
       case 'revenue': return <RevenueView onClose={() => setActiveView(null)} />;
@@ -328,6 +374,23 @@ export const Dashboard = () => {
       case 'pnl': return <PnLView onClose={() => setActiveView(null)} />;
       case 'reports': return <ReportsView onClose={() => setActiveView(null)} />;
       default: return null;
+    }
+  };
+
+  const getFilterIcon = (id: string) => {
+    switch (id) {
+      case 'month':
+      case 'quarter':
+      case 'time': return Calendar;
+      case 'location': return Globe;
+      case 'department': return Users;
+      case 'product': return Package;
+      case 'customer_segment': return Briefcase;
+      case 'sales_channel': return Tag;
+      case 'status': return Activity;
+      case 'marketing_campaign': return Briefcase;
+      case 'distribution_channel': return Users;
+      default: return Filter;
     }
   };
 
@@ -350,45 +413,69 @@ export const Dashboard = () => {
       className="p-6 md:p-10 max-w-[1600px] mx-auto space-y-8 pb-24 md:pb-10 bg-slate-50/50 min-h-screen"
     >
       {/* Top Bar */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200 relative z-30">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="flex gap-2 flex-wrap">
-            <select className="bg-slate-50 border-none text-sm font-medium text-slate-700 rounded-lg focus:ring-0 cursor-pointer hover:bg-slate-100 py-2 px-3">
-              <option>{t('dashboard.month')}</option>
-              <option>{t('dashboard.quarter')}</option>
-              <option>{t('dashboard.year')}</option>
-            </select>
-            <select className="bg-slate-50 border-none text-sm font-medium text-slate-700 rounded-lg focus:ring-0 cursor-pointer hover:bg-slate-100 py-2 px-3">
-              <option>{t('dashboard.allTeams')}</option>
-              <option>Team Alpha</option>
-              <option>Team Beta</option>
-            </select>
-            <select className="bg-slate-50 border-none text-sm font-medium text-slate-700 rounded-lg focus:ring-0 cursor-pointer hover:bg-slate-100 py-2 px-3">
-              <option>{t('dashboard.allAccounts')}</option>
-              <option>{t('dashboard.keyAccounts')}</option>
-              <option>{t('dashboard.standardAccounts')}</option>
-            </select>
-          </div>
-          <div className="relative flex-1 max-w-md hidden md:block" ref={searchRef}>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input 
-              type="text" 
-              placeholder={t('dashboard.search')} 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" 
-            />
+      <header className="flex flex-col gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200 relative z-30">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-wrap flex-1">
+            {dashboardFiltersConfig.map(filter => {
+              const Icon = getFilterIcon(filter.id);
+              return (
+                <div key={filter.id} className="relative flex items-center bg-slate-50 border border-slate-200 rounded-xl hover:border-indigo-300 hover:bg-white transition-all group shadow-sm">
+                  <div className="pl-3 pr-1 py-2 text-slate-400 group-hover:text-indigo-500 transition-colors">
+                    <Icon size={16} />
+                  </div>
+                  <select 
+                    value={activeFilters[filter.id] || ''}
+                    onChange={(e) => setActiveFilters({...activeFilters, [filter.id]: e.target.value})}
+                    className="bg-transparent border-none text-sm font-bold text-slate-700 focus:ring-0 cursor-pointer py-2 pl-1 pr-8 appearance-none w-full min-w-[130px]"
+                  >
+                    {filter.options?.map((opt: string) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-indigo-500">
+                    <ChevronRight size={14} className="rotate-90" />
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="h-8 w-px bg-slate-200 mx-1 hidden md:block"></div>
+
+            <button 
+              onClick={handleResetFilters}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors" 
+              title={t('dashboard.filters.reset') || 'Reset Filters'}
+            >
+              <RotateCcw size={16} />
+            </button>
             
-            {/* Search Dropdown */}
-            <AnimatePresence>
-              {isSearchFocused && searchQuery && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50"
-                >
+            <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors border border-slate-200">
+              <SlidersHorizontal size={16} />
+              <span className="hidden sm:inline">{t('dashboard.filters.more') || 'More Filters'}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 w-full xl:w-auto">
+            <div className="relative flex-1 xl:w-64" ref={searchRef}>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input 
+                type="text" 
+                placeholder={t('dashboard.search')} 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-inner" 
+              />
+              
+              {/* Search Dropdown */}
+              <AnimatePresence>
+                {isSearchFocused && searchQuery && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full right-0 w-full xl:w-80 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50"
+                  >
                   <div className="p-2">
                     <div className="px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('dashboard.searchAccounts')}</div>
                     <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-sm text-slate-700 flex items-center gap-2">
@@ -403,23 +490,23 @@ export const Dashboard = () => {
               )}
             </AnimatePresence>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-3">
+
+          <div className="h-8 w-px bg-slate-200 mx-1 hidden xl:block"></div>
+
           <button 
             onClick={handleAskAgent}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center gap-2 shadow-sm shadow-indigo-200 transition-all"
+            className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 flex items-center gap-2 shadow-sm shadow-indigo-200 transition-all whitespace-nowrap"
           >
-            <Bot size={16} /> {t('dashboard.askAgent')}
+            <Bot size={16} /> <span className="hidden sm:inline">{t('dashboard.askAgent')}</span>
           </button>
           
           <div className="relative" ref={notifRef}>
             <button 
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-              className={`p-2 rounded-full relative transition-colors ${isNotificationsOpen ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
+              className={`p-2.5 rounded-xl relative transition-colors border ${isNotificationsOpen ? 'bg-slate-100 text-slate-800 border-slate-200' : 'text-slate-500 border-slate-200 hover:text-slate-700 hover:bg-slate-50'}`}
             >
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              <Bell size={18} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
             
             {/* Notifications Dropdown */}
@@ -454,14 +541,75 @@ export const Dashboard = () => {
                     </div>
                   </div>
                   <div className="p-2 border-t border-slate-100 bg-slate-50 text-center">
-                    <button className="text-sm text-slate-600 font-medium hover:text-indigo-600">{t('dashboard.viewAll') || 'View All'}</button>
+                    <button className="text-sm text-slate-600 font-medium hover:text-indigo-600">{t('dashboard.viewAll') !== 'dashboard.viewAll' ? t('dashboard.viewAll') : 'View All'}</button>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
-      </header>
+      </div>
+    </header>
+
+      {/* Agent Insights + Actions (Moved to Top) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-indigo-50/30">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+              <Bot size={18} />
+            </div>
+            <h3 className="font-bold text-slate-800">{t('dashboard.agentInsights')}</h3>
+          </div>
+          <span className="text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">{t('dashboard.updatedAgo')}</span>
+        </div>
+        
+        <div className="p-5 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3">
+                <div className="mt-0.5 text-red-500"><AlertCircle size={16} /></div>
+                <div>
+                  <p className="text-sm text-slate-700 font-medium">{t('dashboard.insight1')}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><FileText size={12}/> Q3_Forecast.xlsx</span>
+                  </div>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-0.5 text-amber-500"><AlertCircle size={16} /></div>
+                <div>
+                  <p className="text-sm text-slate-700 font-medium">{t('dashboard.insight2')}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><FileText size={12}/> CRM_Export.csv</span>
+                  </div>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-0.5 text-emerald-500"><CheckCircle2 size={16} /></div>
+                <div>
+                  <p className="text-sm text-slate-700 font-medium">{t('dashboard.insight3')}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><Mail size={12}/> Email_Thread_TechFlow</span>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="flex flex-col gap-3 justify-center border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
+            <button onClick={() => setActiveView('reports')} className="w-full bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 hover:border-indigo-300 transition-all flex items-center justify-center gap-2 shadow-sm">
+              <FileText size={16} className="text-indigo-600" /> {t('dashboard.generateReport')}
+            </button>
+            <button onClick={handleAskAgent} className="w-full bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 hover:border-indigo-300 transition-all flex items-center justify-center gap-2 shadow-sm">
+              <TrendingUp size={16} className="text-emerald-600" /> {t('dashboard.createRecoveryPlan')}
+            </button>
+            <button onClick={handleAskAgent} className="w-full bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 hover:border-indigo-300 transition-all flex items-center justify-center gap-2 shadow-sm">
+              <Mail size={16} className="text-blue-600" /> {t('dashboard.sendFollowUps')}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Summary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -526,7 +674,12 @@ export const Dashboard = () => {
       <div className="mt-8 mb-6">
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-slate-800">{t('dashboard.wipVsPlan')}</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-slate-800">{t('dashboard.wipVsPlan')}</h2>
+              <span className="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded-md border border-emerald-200 flex items-center gap-1">
+                <Database size={12} /> Using Uploaded Plan Data
+              </span>
+            </div>
           </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -571,7 +724,7 @@ export const Dashboard = () => {
               <div className="p-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {group.kpis.map((kpi: any) => (
-                    <KpiWidget key={kpi.id} kpi={kpi} chartType={kpi.chartType as string} />
+                    <KpiWidget key={kpi.id} kpi={kpi} chartType={kpi.chartType as string} t={t} filters={activeFilters} />
                   ))}
                 </div>
               </div>
@@ -670,64 +823,6 @@ export const Dashboard = () => {
       </div>
 
       {/* Tầng 3: Agent Insights + Actions */}
-      <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 overflow-hidden relative">
-        <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-indigo-50/30">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-              <Bot size={18} />
-            </div>
-            <h3 className="font-bold text-slate-800">{t('dashboard.agentInsights')}</h3>
-          </div>
-          <span className="text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">{t('dashboard.updatedAgo')}</span>
-        </div>
-        
-        <div className="p-5 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <div className="mt-0.5 text-red-500"><AlertCircle size={16} /></div>
-                <div>
-                  <p className="text-sm text-slate-700 font-medium">{t('dashboard.insight1')}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><FileText size={12}/> Q3_Forecast.xlsx</span>
-                  </div>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="mt-0.5 text-amber-500"><AlertCircle size={16} /></div>
-                <div>
-                  <p className="text-sm text-slate-700 font-medium">{t('dashboard.insight2')}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><FileText size={12}/> CRM_Export.csv</span>
-                  </div>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="mt-0.5 text-emerald-500"><CheckCircle2 size={16} /></div>
-                <div>
-                  <p className="text-sm text-slate-700 font-medium">{t('dashboard.insight3')}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-slate-500 flex items-center gap-1 hover:text-indigo-600 cursor-pointer"><Mail size={12}/> Email_Thread_TechFlow</span>
-                  </div>
-                </div>
-              </li>
-            </ul>
-          </div>
-          
-          <div className="flex flex-col gap-3 justify-center border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
-            <button onClick={() => setActiveView('reports')} className="w-full bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 hover:border-indigo-300 transition-all flex items-center justify-center gap-2 shadow-sm">
-              <FileText size={16} className="text-indigo-600" /> {t('dashboard.generateReport')}
-            </button>
-            <button onClick={handleAskAgent} className="w-full bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 hover:border-indigo-300 transition-all flex items-center justify-center gap-2 shadow-sm">
-              <TrendingUp size={16} className="text-emerald-600" /> {t('dashboard.createRecoveryPlan')}
-            </button>
-            <button onClick={handleAskAgent} className="w-full bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 hover:border-indigo-300 transition-all flex items-center justify-center gap-2 shadow-sm">
-              <Mail size={16} className="text-blue-600" /> {t('dashboard.sendFollowUps')}
-            </button>
-          </div>
-        </div>
-      </div>
 
     </motion.div>
   );

@@ -12,6 +12,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ defau
 const Admin = lazy(() => import('./pages/Admin').then(module => ({ default: module.Admin })));
 const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
 const Login = lazy(() => import('./pages/Login').then(module => ({ default: module.Login })));
+const AgentSummary = lazy(() => import('./pages/AgentSummary').then(module => ({ default: module.AgentSummary })));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-full w-full min-h-screen">
@@ -50,6 +51,7 @@ const AppContent: React.FC = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/agent-summary" element={<AgentSummary />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>

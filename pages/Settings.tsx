@@ -37,7 +37,7 @@ export const Settings = () => {
   };
 
   const handleDeleteGoal = (id: number) => {
-    if (confirm('Are you sure you want to delete this goal?')) {
+    if (confirm(t('settings.confirmDeleteGoal'))) {
       setGoals(goals.filter(g => g.id !== id));
     }
   };
@@ -76,18 +76,18 @@ export const Settings = () => {
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Communication Tone</label>
               <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
-                <option>Professional & Formal (Default)</option>
-                <option>Friendly & Approachable</option>
-                <option>Direct & Concise (Executive Summary style)</option>
+                <option>{t('settings.toneProfessional')}</option>
+                <option>{t('settings.toneFriendly')}</option>
+                <option>{t('settings.toneDirect')}</option>
               </select>
               <p className="text-xs text-slate-500 mt-2">Determines how the AI responds to user queries.</p>
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Escalation Path</label>
               <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
-                <option>Route to Human Admin when confidence &lt; 80%</option>
-                <option>Always attempt to answer, provide disclaimer</option>
-                <option>Strictly refuse queries outside Knowledge Base</option>
+                <option>{t('settings.escRouteAdmin')}</option>
+                <option>{t('settings.escAlwaysAnswer')}</option>
+                <option>{t('settings.escStrictRefuse')}</option>
               </select>
             </div>
           </div>

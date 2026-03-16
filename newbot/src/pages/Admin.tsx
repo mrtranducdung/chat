@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, Database, Bot, Link, ChevronRight, ArrowLeft, Upload, Search, Plus, Trash2, Edit2, FileText, CheckCircle2, X, Settings2, AlertCircle, MessageSquare, Briefcase, Activity, DollarSign, Zap, LayoutDashboard, Building2, FileSpreadsheet, Server, BrainCircuit, LayoutTemplate, Loader2, Play, Settings, DatabaseZap, Network } from 'lucide-react';
+import { Users, Database, Bot, Link, ChevronRight, ArrowLeft, Upload, Search, Plus, Trash2, Edit2, FileText, CheckCircle2, X, Settings2, AlertCircle, MessageSquare, Briefcase, Activity, DollarSign, Zap, LayoutDashboard, Building2, FileSpreadsheet, Server, BrainCircuit, LayoutTemplate, Loader2, Play, Settings, DatabaseZap, Network, Filter } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { DashboardConfig } from '../components/admin/DashboardConfig';
+import { FilterMaker } from '../components/admin/FilterMaker';
 import { INDUSTRIES } from '../data/kpiData';
 
 export const Admin = () => {
@@ -12,6 +13,7 @@ export const Admin = () => {
   const adminModules = [
     { id: 'company', icon: Building2, title: t('admin.companyProfile'), desc: t('admin.companyProfileDesc'), color: 'bg-teal-50 text-teal-600' },
     { id: 'dashboardConfig', icon: LayoutDashboard, title: t('admin.dashboardConfig'), desc: t('admin.dashboardConfigDesc'), color: 'bg-orange-50 text-orange-600' },
+    { id: 'filterMaker', icon: Filter, title: 'Filter Maker', desc: 'Customize dashboard filters for executives', color: 'bg-emerald-50 text-emerald-600' },
     { id: 'users', icon: Users, title: t('admin.users'), desc: t('admin.usersDesc'), color: 'bg-blue-50 text-blue-600' },
     { id: 'data', icon: Database, title: t('admin.data'), desc: t('admin.dataDesc'), color: 'bg-indigo-50 text-indigo-600' },
     { id: 'bot', icon: Bot, title: t('admin.botSettings'), desc: t('admin.botSettingsDesc'), color: 'bg-purple-50 text-purple-600' },
@@ -100,7 +102,7 @@ export const Admin = () => {
   };
 
   const handleDeleteUser = (id: number) => {
-    if (confirm('Are you sure you want to delete this user?')) {
+    if (confirm(t('admin.confirmDeleteUser'))) {
       setUsers(users.filter(u => u.id !== id));
     }
   };
@@ -108,12 +110,14 @@ export const Admin = () => {
   // --- Data & RAG State ---
   const [dataTab, setDataTab] = useState<'sources' | 'training' | 'mapping'>('sources');
   const [dataSources, setDataSources] = useState([
-    { id: 1, name: 'Báo cáo tài chính Q1.pdf', type: 'PDF', size: '2.4 MB', status: 'Learned', date: '2026-03-01', records: 0 },
-    { id: 2, name: 'Danh sách nhân sự 2026.csv', type: 'CSV', size: '1.1 MB', status: 'Learned', date: '2026-03-05', records: 1250 },
-    { id: 3, name: 'Doanh thu bán hàng_Tháng 3.xlsx', type: 'Excel', size: '5.2 MB', status: 'Processing', date: '2026-03-07', records: 8400 },
-    { id: 4, name: 'PostgreSQL_Production', type: 'Database', size: 'N/A', status: 'Connected', date: '2026-03-10', records: 150000 },
+    { id: 1, name: 'Báo cáo tài chính Q1.pdf', type: 'PDF', size: '2.4 MB', status: 'Learned', date: '2026-03-01', records: 0, category: 'actual' },
+    { id: 2, name: 'Danh sách nhân sự 2026.csv', type: 'CSV', size: '1.1 MB', status: 'Learned', date: '2026-03-05', records: 1250, category: 'actual' },
+    { id: 3, name: 'Doanh thu bán hàng_Tháng 3.xlsx', type: 'Excel', size: '5.2 MB', status: 'Processing', date: '2026-03-07', records: 8400, category: 'actual' },
+    { id: 4, name: 'PostgreSQL_Production', type: 'Database', size: 'N/A', status: 'Connected', date: '2026-03-10', records: 150000, category: 'actual' },
+    { id: 5, name: 'Kế hoạch kinh doanh 2026.xlsx', type: 'Excel', size: '1.8 MB', status: 'Learned', date: '2026-01-15', records: 1200, category: 'plan' },
   ]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState<'actual' | 'plan'>('actual');
 
   const [agentSchemas, setAgentSchemas] = useState([
     { id: 1, sourceId: 2, name: 'Nhân sự', fields: ['Mã NV', 'Họ tên', 'Phòng ban', 'Lương', 'Ngày vào làm'], confidence: 98 },
@@ -132,13 +136,22 @@ export const Admin = () => {
   const handleFileUpload = () => {
     setIsUploading(true);
     setTimeout(() => {
-      setDataSources([{ id: Date.now(), name: 'new_training_data.csv', type: 'CSV', size: '1.5 MB', status: 'Processing', date: new Date().toISOString().split('T')[0], records: 500 }, ...dataSources]);
+      setDataSources([{ 
+        id: Date.now(), 
+        name: uploadCategory === 'plan' ? 'new_plan_data.xlsx' : 'new_actual_data.csv', 
+        type: uploadCategory === 'plan' ? 'Excel' : 'CSV', 
+        size: '1.5 MB', 
+        status: 'Processing', 
+        date: new Date().toISOString().split('T')[0], 
+        records: 500,
+        category: uploadCategory
+      }, ...dataSources]);
       setIsUploading(false);
     }, 1500);
   };
 
   const handleDeleteDataSource = (id: number) => {
-    if (confirm('Xóa nguồn dữ liệu này? Agent sẽ không còn sử dụng dữ liệu này nữa.')) {
+    if (confirm(t('admin.confirmDeleteDataSource'))) {
       setDataSources(dataSources.filter(f => f.id !== id));
     }
   };
@@ -253,6 +266,11 @@ export const Admin = () => {
                 <DashboardConfig />
               )}
 
+              {/* --- FILTER MAKER MODULE --- */}
+              {activeModule === 'filterMaker' && (
+                <FilterMaker />
+              )}
+
               {/* --- USERS MODULE --- */}
               {activeModule === 'users' && (
                 <div className="space-y-6">
@@ -360,32 +378,55 @@ export const Admin = () => {
 
                   {dataTab === 'sources' && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <p className="text-sm text-slate-500">{t('admin.uploadDesc')}</p>
-                        <button 
-                          onClick={() => setIsConnectDBModalOpen(true)}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors shrink-0"
-                        >
-                          <Network size={16} />
-                          {t('admin.connectDB')}
-                        </button>
-                      </div>
-
-                      <div 
-                        onClick={handleFileUpload}
-                        className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
-                          isUploading ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'
-                        }`}
-                      >
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isUploading ? 'bg-indigo-100 text-indigo-600 animate-pulse' : 'bg-slate-100 text-slate-500'}`}>
-                          {isUploading ? <Loader2 size={32} className="animate-spin" /> : <Upload size={32} />}
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <p className="text-sm text-slate-500">{t('admin.uploadDesc')}</p>
+                          <button 
+                            onClick={() => setIsConnectDBModalOpen(true)}
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors shrink-0"
+                          >
+                            <Network size={16} />
+                            {t('admin.connectDB')}
+                          </button>
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900">
-                          {isUploading ? t('admin.uploading') : t('admin.uploadData')}
-                        </h3>
-                        <p className="text-sm text-slate-500 mt-2 max-w-sm">
-                          {t('admin.dragDrop')}
-                        </p>
+
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                          <label className="text-sm font-bold text-slate-700 shrink-0">Data Category:</label>
+                          <div className="flex gap-2 w-full sm:w-auto">
+                            <button
+                              onClick={() => setUploadCategory('actual')}
+                              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-colors ${uploadCategory === 'actual' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
+                            >
+                              Actual Data
+                            </button>
+                            <button
+                              onClick={() => setUploadCategory('plan')}
+                              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-colors ${uploadCategory === 'plan' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
+                            >
+                              Plan / Target Data
+                            </button>
+                          </div>
+                          <p className="text-xs text-slate-500 sm:ml-auto">
+                            {uploadCategory === 'plan' ? 'Upload targets to compare against actual performance.' : 'Upload historical or current operational data.'}
+                          </p>
+                        </div>
+
+                        <div 
+                          onClick={handleFileUpload}
+                          className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
+                            isUploading ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isUploading ? 'bg-indigo-100 text-indigo-600 animate-pulse' : 'bg-slate-100 text-slate-500'}`}>
+                            {isUploading ? <Loader2 size={32} className="animate-spin" /> : <Upload size={32} />}
+                          </div>
+                          <h3 className="text-lg font-bold text-slate-900">
+                            {isUploading ? t('admin.uploading') : t('admin.uploadData')}
+                          </h3>
+                          <p className="text-sm text-slate-500 mt-2 max-w-sm">
+                            {t('admin.dragDrop')}
+                          </p>
+                        </div>
                       </div>
 
                       <div>
@@ -407,7 +448,14 @@ export const Admin = () => {
                                    <FileText size={20} />}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-bold text-slate-800 line-clamp-1">{source.name}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-bold text-slate-800 line-clamp-1">{source.name}</p>
+                                    {source.category === 'plan' && (
+                                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                        Plan
+                                      </span>
+                                    )}
+                                  </div>
                                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-500">
                                     <span>{source.type}</span>
                                     <span className="hidden sm:inline">•</span>

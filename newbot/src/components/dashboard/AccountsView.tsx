@@ -16,19 +16,19 @@ export const AccountsView = ({ onClose }: { onClose: () => void }) => {
         <div className="flex items-center gap-2">
           <button onClick={onClose} className="text-slate-500 hover:text-slate-700">{t('dashboard.views.backToDashboard')}</button>
           <ChevronRight size={16} className="text-slate-400" />
-          <h2 className="text-xl font-semibold text-slate-800">Accounts (360° View)</h2>
+          <h2 className="text-xl font-semibold text-slate-800">{t('dashboard.views.accounts360')}</h2>
         </div>
         <div className="flex gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input type="text" placeholder="Search accounts..." className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64" />
+            <input type="text" placeholder={t('dashboard.views.searchAccounts')} className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64" />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden lg:col-span-1">
-          <div className="p-4 border-b border-slate-100 font-semibold text-slate-800">Top Accounts</div>
+          <div className="p-4 border-b border-slate-100 font-semibold text-slate-800">{t('dashboard.views.topAccounts')}</div>
           <div className="divide-y divide-slate-100">
             {[
               { name: 'TechFlow Enterprise', rev: '¥45M', health: 'Green', last: '2 days ago' },
@@ -58,23 +58,23 @@ export const AccountsView = ({ onClose }: { onClose: () => void }) => {
               <p className="text-sm text-slate-500 mt-1">Enterprise Software • Tokyo, Japan</p>
             </div>
             <button onClick={handleAskAgent} className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-100 flex items-center gap-2">
-              <Bot size={16} /> Account Plan Generator
+              <Bot size={16} /> {t('dashboard.views.accountPlanGen')}
             </button>
           </div>
 
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">Revenue YTD</p>
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">{t('dashboard.views.revenueYTD')}</p>
               <h4 className="text-xl font-bold text-slate-900">¥45M</h4>
               <span className="text-xs text-emerald-600 font-medium">+15% vs LY</span>
             </div>
             <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">Open Pipeline</p>
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">{t('dashboard.views.openPipeline')}</p>
               <h4 className="text-xl font-bold text-slate-900">¥12M</h4>
               <span className="text-xs text-slate-500 font-medium">2 active deals</span>
             </div>
             <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">Health Score</p>
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">{t('dashboard.views.healthScore')}</p>
               <h4 className="text-xl font-bold text-emerald-600">92/100</h4>
               <span className="text-xs text-slate-500 font-medium">Excellent</span>
             </div>
@@ -82,7 +82,7 @@ export const AccountsView = ({ onClose }: { onClose: () => void }) => {
 
           <div className="space-y-6">
             <div>
-              <h4 className="font-semibold text-slate-800 mb-3 border-b pb-2">Recent Interactions</h4>
+              <h4 className="font-semibold text-slate-800 mb-3 border-b pb-2">{t('dashboard.views.recentInteractions')}</h4>
               <div className="space-y-3">
                 <div className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">

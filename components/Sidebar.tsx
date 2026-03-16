@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Settings, ShieldAlert, LogOut, KeyRound, X, Globe, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Settings, ShieldAlert, LogOut, KeyRound, X, Globe, ChevronDown, Presentation } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useAgent } from '../contexts/AgentContext';
@@ -23,6 +23,7 @@ export const Sidebar = () => {
     { to: '/dashboard', icon: LayoutDashboard, label: t('menu.dashboard') },
     { to: '/admin', icon: ShieldAlert, label: t('menu.admin') },
     { to: '/settings', icon: Settings, label: t('menu.settings') },
+    { to: '/agent-summary', icon: Presentation, label: t('menu.agentSummary') || 'Agent Summary' },
   ];
 
   const handleChangePassword = (e: React.FormEvent) => {

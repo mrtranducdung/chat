@@ -263,7 +263,7 @@ export const DashboardConfig = () => {
           <div className="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
           <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
             <span className="text-xs text-slate-500 font-medium">{t('admin.industryLabel')}</span>
-            <span className="text-sm font-bold text-slate-700">{t(`industry.${selectedIndustry}`) || INDUSTRIES.find(i => i.id === selectedIndustry)?.name}</span>
+            <span className="text-sm font-bold text-slate-700">{t(`industry.${selectedIndustry}`) !== `industry.${selectedIndustry}` ? t(`industry.${selectedIndustry}`) : INDUSTRIES.find(i => i.id === selectedIndustry)?.name}</span>
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -309,7 +309,7 @@ export const DashboardConfig = () => {
                   >
                     <div className="flex items-center gap-2">
                       {isExpanded ? <ChevronDown size={16} className="text-slate-500" /> : <ChevronRight size={16} className="text-slate-500" />}
-                      <h4 className="font-semibold text-sm text-slate-700">{t(`dashboard.group.${group.id}`) || group.name}</h4>
+                      <h4 className="font-semibold text-sm text-slate-700">{t(`dashboard.group.${group.id}`) !== `dashboard.group.${group.id}` ? t(`dashboard.group.${group.id}`) : group.name}</h4>
                     </div>
                     <span className="text-[10px] font-medium text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
                       {groupKpis.length}
@@ -329,7 +329,7 @@ export const DashboardConfig = () => {
                           return (
                             <div key={kpi.id} className="p-3 flex items-center justify-between group hover:bg-slate-50 transition-colors">
                               <div className="flex-1 pr-2">
-                                <p className="text-sm font-medium text-slate-800 line-clamp-1">{t(`dashboard.kpi.${kpi.id}`) || kpi.name}</p>
+                                <p className="text-sm font-medium text-slate-800 line-clamp-1">{t(`dashboard.kpi.${kpi.id}`) !== `dashboard.kpi.${kpi.id}` ? t(`dashboard.kpi.${kpi.id}`) : kpi.name}</p>
                                 <p className="text-[10px] text-slate-400 font-mono mt-0.5">{kpi.code}</p>
                               </div>
                               <button
@@ -395,7 +395,7 @@ export const DashboardConfig = () => {
                         {/* Widget Header */}
                         <div className="px-4 pt-4 pb-2 flex justify-between items-start shrink-0">
                           <div>
-                            <h4 className="font-bold text-slate-800 text-sm line-clamp-1">{t(`dashboard.kpi.${kpi.id}`) || kpi.name}</h4>
+                            <h4 className="font-bold text-slate-800 text-sm line-clamp-1">{t(`dashboard.kpi.${kpi.id}`) !== `dashboard.kpi.${kpi.id}` ? t(`dashboard.kpi.${kpi.id}`) : kpi.name}</h4>
                             <p className="text-[10px] text-slate-400 font-mono">{kpi.code}</p>
                           </div>
                           

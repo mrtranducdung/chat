@@ -1,7 +1,9 @@
 import React from 'react';
 import { ChevronRight, AlertCircle, Bot, Mail, MessageSquare, Plus } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export const PipelineView = ({ onClose }: { onClose: () => void }) => {
+  const { t } = useLanguage();
   const handleAskAgent = () => {
     window.dispatchEvent(new CustomEvent('open-ai-chatbot'));
   };
@@ -12,11 +14,11 @@ export const PipelineView = ({ onClose }: { onClose: () => void }) => {
         <div className="flex items-center gap-2">
           <button onClick={onClose} className="text-slate-500 hover:text-slate-700">Back to Dashboard</button>
           <ChevronRight size={16} className="text-slate-400" />
-          <h2 className="text-xl font-semibold text-slate-800">Pipeline & WIP (Execution Board)</h2>
+          <h2 className="text-xl font-semibold text-slate-800">{t('dashboard.views.pipelineWip')}</h2>
         </div>
         <div className="flex gap-2">
           <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center gap-2">
-            <Plus size={16} /> New Deal
+            <Plus size={16} /> {t('dashboard.views.newDeal')}
           </button>
         </div>
       </div>
@@ -65,19 +67,19 @@ export const PipelineView = ({ onClose }: { onClose: () => void }) => {
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-          <h3 className="font-semibold text-slate-800">WIP Table (Action Required)</h3>
-          <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">View All</button>
+          <h3 className="font-semibold text-slate-800">{t('dashboard.views.wipTable')}</h3>
+          <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">{t('dashboard.views.viewAll')}</button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Deal / Account</th>
-                <th className="px-4 py-3 font-medium">Owner</th>
-                <th className="px-4 py-3 font-medium">Next Action</th>
-                <th className="px-4 py-3 font-medium">Due Date</th>
-                <th className="px-4 py-3 font-medium">Agent Suggestion</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
+                <th className="px-4 py-3 font-medium">{t('dashboard.views.dealAccount')}</th>
+                <th className="px-4 py-3 font-medium">{t('dashboard.views.owner')}</th>
+                <th className="px-4 py-3 font-medium">{t('dashboard.views.nextAction')}</th>
+                <th className="px-4 py-3 font-medium">{t('dashboard.views.dueDate')}</th>
+                <th className="px-4 py-3 font-medium">{t('dashboard.views.agentSuggestion')}</th>
+                <th className="px-4 py-3 font-medium">{t('dashboard.views.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
